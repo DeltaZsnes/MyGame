@@ -3,15 +3,26 @@ const g = canvas.getContext("2d");
 
 let oldTime;
 
+const blackPieces = ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', ]
+    .reduce((a, c) => {
+        a[c] = true;
+        return a
+    }, {});
+const whitePieces = ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖', '♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙', ]
+    .reduce((a, c) => {
+        a[c] = true;
+        return a
+    }, {});
+
 let state = [
-    '♜','♞','♝','♛','♚','♝','♞','♜',
-    '♟︎','♟︎','♟︎','♟︎','♟︎','♟︎','♟︎','♟︎',
-    ' ',' ',' ',' ',' ',' ',' ',' ',
-    ' ',' ',' ',' ',' ',' ',' ',' ',
-    ' ',' ',' ',' ',' ',' ',' ',' ',
-    ' ',' ',' ',' ',' ',' ',' ',' ',
-    '♙','♙','♙','♙','♙','♙','♙','♙',
-    '♖','♘','♗','♕','♔','♗','♘','♖',
+    '♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜',
+    '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎',
+    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+    '♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙',
+    '♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖',
     'W',
 ];
 
@@ -21,14 +32,13 @@ const render = async (deltaTime) => {
 
     const s = 50;
 
-    for(let y=0; y<8; y++){
-        for(let x=0; x<8; x++){
-        
-            if((x + y) % 2 == 0){
-                g.fillStyle = "gray";
-            }
-            else{
+    for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 8; x++) {
+
+            if ((x + y) % 2 == 0) {
                 g.fillStyle = "white";
+            } else {
+                g.fillStyle = "gray";
             }
 
             g.fillRect(x * s, y * s, s, s);
@@ -37,7 +47,7 @@ const render = async (deltaTime) => {
 
     g.fillStyle = "black";
     g.font = "30px Arial";
-    g.textBaseline = 'middle'; 
+    g.textBaseline = 'middle';
     g.textAlign = 'center';
 
     const drawSymbol = (symbol, x, y) => {
@@ -62,8 +72,8 @@ const render = async (deltaTime) => {
     drawSymbol('g', 6, 8);
     drawSymbol('h', 7, 8);
 
-    for(let y=0; y<8; y++){
-        for(let x=0; x<8; x++){
+    for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 8; x++) {
             drawSymbol(state[y * 8 + x], x, y);
         }
     }
@@ -71,13 +81,18 @@ const render = async (deltaTime) => {
 
 const move = (state, source, target) => {
     console.log(source, target);
-    console.log(source[0], source.charCodeAt(0) - 'a'.charCodeAt(0));
-    console.log(source[1], 7 - (source.charCodeAt(1) - '1'.charCodeAt(0)) );
 
     // find piece
+    const piece = state[(7 - (source.charCodeAt(1) - '1'.charCodeAt(0))) * 8 + (source.charCodeAt(0) - 'a'.charCodeAt(0))];
 
-    let piece = state[(7 - (source.charCodeAt(1) - '1'.charCodeAt(0))) * 8 + (source.charCodeAt(0) - 'a'.charCodeAt(0))];
-    console.log(piece);
+    const isWhitePiece = whitePieces[piece];
+    const isBlackPiece = !isWhitePiece;
+
+    const isWhiteTurn = state[64] === 'W';
+    const isBlackTurn = !isWhiteTurn;
+
+    if (isWhiteTurn && !isWhitePiece) throw "It is white's turn";
+    if (isBlackTurn && !isBlackPiece) throw "It is black's turn";
 
     // find possible move for piece
     // check if move is in possible moves
@@ -85,7 +100,10 @@ const move = (state, source, target) => {
     state[(7 - (source.charCodeAt(1) - '1'.charCodeAt(0))) * 8 + (source.charCodeAt(0) - 'a'.charCodeAt(0))] = ' ';
     state[(7 - (target.charCodeAt(1) - '1'.charCodeAt(0))) * 8 + (target.charCodeAt(0) - 'a'.charCodeAt(0))] = piece;
 
-    return [...state];
+    if (isWhiteTurn) state[64] = 'B';
+    if (isBlackTurn) state[64] = 'W';
+
+    return state;
 };
 
 state = move(state, "e2", "e4");
@@ -95,9 +113,9 @@ state = move(state, "f8", "c5");
 
 const gameLoop = async (newTime) => {
     const deltaTime = newTime - oldTime;
-    
+
     await render(deltaTime);
-    
+
     oldTime = newTime;
     window.requestAnimationFrame(gameLoop);
 };
