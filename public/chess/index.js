@@ -4,14 +4,14 @@ const g = canvas.getContext("2d");
 let oldTime;
 
 let state = [
-    '♜','♞','♝','♚','♛','♝','♞','♜',
+    '♜','♞','♝','♛','♚','♝','♞','♜',
     '♟︎','♟︎','♟︎','♟︎','♟︎','♟︎','♟︎','♟︎',
     ' ',' ',' ',' ',' ',' ',' ',' ',
     ' ',' ',' ',' ',' ',' ',' ',' ',
     ' ',' ',' ',' ',' ',' ',' ',' ',
     ' ',' ',' ',' ',' ',' ',' ',' ',
     '♙','♙','♙','♙','♙','♙','♙','♙',
-    '♖','♘','♗','♔','♕','♗','♘','♖',
+    '♖','♘','♗','♕','♔','♗','♘','♖',
     'W',
 ];
 
@@ -73,13 +73,25 @@ const move = (state, source, target) => {
     console.log(source, target);
     console.log(source[0], source.charCodeAt(0) - 'a'.charCodeAt(0));
     console.log(source[1], 7 - (source.charCodeAt(1) - '1'.charCodeAt(0)) );
+
+    // find piece
+
+    let piece = state[(7 - (source.charCodeAt(1) - '1'.charCodeAt(0))) * 8 + (source.charCodeAt(0) - 'a'.charCodeAt(0))];
+    console.log(piece);
+
+    // find possible move for piece
+    // check if move is in possible moves
+    // move the piece
+    state[(7 - (source.charCodeAt(1) - '1'.charCodeAt(0))) * 8 + (source.charCodeAt(0) - 'a'.charCodeAt(0))] = ' ';
+    state[(7 - (target.charCodeAt(1) - '1'.charCodeAt(0))) * 8 + (target.charCodeAt(0) - 'a'.charCodeAt(0))] = piece;
+
     return [...state];
 };
 
 state = move(state, "e2", "e4");
 state = move(state, "e7", "e6");
 state = move(state, "f2", "f4");
-state = move(state, "f2", "f4");
+state = move(state, "f8", "c5");
 
 const gameLoop = async (newTime) => {
     const deltaTime = newTime - oldTime;
