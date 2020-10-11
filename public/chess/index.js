@@ -1,34 +1,49 @@
 const canvas = document.getElementById("myCanvas");
 const g = canvas.getContext("2d");
 
-const state = {};
-
 let oldTime;
 
-const draw = () => {
-    g.fillStyle = "#000000";
-    g.fillRect(ball.x, ball.y, 10, 10);
+const state = "♖♘♗♔♕♗♘♖♙♙♙♙♙♙♙♙................................♟︎♟︎♟︎♟︎♟︎♟︎♟︎♟︎♜♞♝♚♛♝♞♜";
 
-    for(let x=0; x<8; x++){
-        for(let y=0; y<8; y++){
+const draw = (deltaTime) => {
+    g.fillStyle = "#FFFFFF";
+    g.fillRect(0, 0, 600, 600);
+
+    const s = 50;
+    g.fillStyle = "#000000";
+
+    for(let y=0; y<8; y++){
+        for(let x=0; x<8; x++){
+        
+            if(x + y % 2 == 0){
+                g.fillStyle = "#000000";
+            }
+            else{
+                g.fillStyle = "#FFFFFF";
+            }
+
+            g.fillRect(x * s, y * s, s, s);
+        }
+    }
+
+    g.fillStyle = "#000000";
+    g.font = "30px Arial";
+
+    for(let y=0; y<8; y++){
+        for(let x=0; x<8; x++){
+            const symbol = state[y * 8 + x];
+            g.fillText(symbol, x * s, y * s);
         }
     }
 };
 
-const clearFrame = () => {
-    g.fillStyle = "#FFFFFF";
-    g.fillRect(0, 0, 900, 600);
-};
-
 const gameLoop = (newTime) => {
     const deltaTime = newTime - oldTime;
-    // console.log(deltaTime);
     
-    clearFrame();
-    draw();
+    draw(deltaTime);
     
     oldTime = newTime;
-    window.requestAnimationFrame(gameLoop);
+    // window.requestAnimationFrame(gameLoop);
 };
 
 window.requestAnimationFrame(gameLoop);
