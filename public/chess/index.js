@@ -8,12 +8,13 @@ const ALPHA_h = 'h'.charCodeAt(0);
 const DIGIT_1 = '1'.charCodeAt(0);
 const DIGIT_7 = '7'.charCodeAt(0);
 
-const blackPieces = ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', ]
+const whitePieces = ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖', '♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙', ]
     .reduce((a, c) => {
         a[c] = true;
         return a
     }, {});
-const whitePieces = ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖', '♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙', ]
+
+const blackPieces = ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', ]
     .reduce((a, c) => {
         a[c] = true;
         return a
@@ -107,6 +108,20 @@ const outOfBounds = (position) => {
     return alpha < ALPHA_a || ALPHA_h < alpha || digit < DIGIT_1 || DIGIT_7 < digit;
 }
 
+const whiteMoveCheck = (targets, alpha, digit) => {
+    const next = getLocation(alpha, digit);
+    if(outOfBounds(next)) return;
+    if(whitePieces[getSymbol(state, next).symbol]) return;
+    targets.push(next);
+};
+
+const blackMoveCheck = (targets, alpha, digit) => {
+    const next = getLocation(alpha, digit);
+    if(outOfBounds(next)) return;
+    if(blackPieces[getSymbol(state, next).symbol]) return;
+    targets.push(next);
+};
+
 const getLegalTargets = (state, source) => {
     const { alpha, digit, symbol } = getSymbol(state, source);
 
@@ -119,82 +134,71 @@ const getLegalTargets = (state, source) => {
     if(isWhiteTurn && isBlackPiece) return [];
     if(isBlackTurn && isWhitePiece) return [];
 
-    let legalTargets = [];
-
-    const whiteTeamBlock = (state, position) => whitePieces[getSymbol(state, position).symbol];
-    const blackTeamBlock = (state, position) => blackPieces[getSymbol(state, position).symbol];
+    const targets = [];
 
     switch(symbol){
         case '♙':{
             for(let i=1; i<=2; i++){
-                const next = getLocation(alpha, digit + i);
-                if(outOfBounds(next)) break;
-                if(whiteTeamBlock(state, next)) break;
-                legalTargets.push(next);
+                whiteMoveCheck(targets, alpha, digit + i);
             }
             break;
         }
         case '♟︎':{
             for(let i=1; i<=2; i++){
-                const next = getLocation(alpha, digit - i);
-                if(outOfBounds(next)) break;
-                if(blackTeamBlock(state, next)) break;
-                legalTargets.push(next);
+                blackMoveCheck(targets, alpha, digit - i);
             }
             break;
         }
         case '♗':{
             for(let i=1; i<=7; i++){
-                const next = getLocation(alpha - i, digit - i);
-                if(outOfBounds(next)) break;
-                if(whiteTeamBlock(state, next)) break;
-                legalTargets.push(next);
+                whiteMoveCheck(targets, alpha - i, digit - i);
             }
             for(let i=1; i<=7; i++){
-                const next = getLocation(alpha - i, digit + i);
-                if(outOfBounds(next)) break;
-                if(whiteTeamBlock(state, next)) break;
-                legalTargets.push(next);
+                whiteMoveCheck(targets, alpha - i, digit + i);
             }
             for(let i=1; i<=7; i++){
-                const next = getLocation(alpha + i, digit - i);
-                if(outOfBounds(next)) break;
-                if(whiteTeamBlock(state, next)) break;
-                legalTargets.push(next);
+                whiteMoveCheck(targets, alpha + i, digit - i);
             }
             for(let i=1; i<=7; i++){
-                const next = getLocation(alpha + i, digit + i);
-                if(outOfBounds(next)) break;
-                if(whiteTeamBlock(state, next)) break;
-                legalTargets.push(next);
+                whiteMoveCheck(targets, alpha + i, digit + i);
             }
             break;
         }
         case '♝':{
             for(let i=1; i<=7; i++){
-                const next = getLocation(alpha - i, digit - i);
-                if(outOfBounds(next)) break;
-                if(blackTeamBlock(state, next)) break;
-                legalTargets.push(next);
+                blackMoveCheck(targets, alpha - i, digit - i);
             }
             for(let i=1; i<=7; i++){
-                const next = getLocation(alpha - i, digit + i);
-                if(outOfBounds(next)) break;
-                if(blackTeamBlock(state, next)) break;
-                legalTargets.push(next);
+                blackMoveCheck(targets, alpha - i, digit + i);
             }
             for(let i=1; i<=7; i++){
-                const next = getLocation(alpha + i, digit - i);
-                if(outOfBounds(next)) break;
-                if(blackTeamBlock(state, next)) break;
-                legalTargets.push(next);
+                blackMoveCheck(targets, alpha + i, digit - i);
             }
             for(let i=1; i<=7; i++){
-                const next = getLocation(alpha + i, digit + i);
-                if(outOfBounds(next)) break;
-                if(blackTeamBlock(state, next)) break;
-                legalTargets.push(next);
+                blackMoveCheck(targets, alpha + i, digit + i);
             }
+            break;
+        }
+        case '♘':{
+            whiteMoveCheck(targets, alpha - 1, digit - 2);
+            whiteMoveCheck(targets, alpha - 1, digit + 2);
+            whiteMoveCheck(targets, alpha + 1, digit - 2);
+            whiteMoveCheck(targets, alpha + 1, digit + 2);
+            whiteMoveCheck(targets, alpha - 2, digit - 1);
+            whiteMoveCheck(targets, alpha - 2, digit + 1);
+            whiteMoveCheck(targets, alpha + 2, digit - 1);
+            whiteMoveCheck(targets, alpha + 2, digit + 1);
+            break;
+        }
+        case '♞':{
+            blackMoveCheck(targets, alpha - 1, digit - 2);
+            blackMoveCheck(targets, alpha - 1, digit + 2);
+            blackMoveCheck(targets, alpha + 1, digit - 2);
+            blackMoveCheck(targets, alpha + 1, digit + 2);
+            blackMoveCheck(targets, alpha - 2, digit - 1);
+            blackMoveCheck(targets, alpha - 2, digit + 1);
+            blackMoveCheck(targets, alpha + 2, digit - 1);
+            blackMoveCheck(targets, alpha + 2, digit + 1);
             break;
         }
         case ' ':
@@ -203,8 +207,7 @@ const getLegalTargets = (state, source) => {
             throw "Unknown symbol";
     }
 
-    console.log(legalTargets);
-    return legalTargets;
+    return targets;
 };
 
 const move = (state, source, target) => {
@@ -223,7 +226,10 @@ const move = (state, source, target) => {
 
     // check if move is legal
     const legalTargets = getLegalTargets(state, source);
-    if(!legalTargets.includes(target)) throw "The move target is illegal";
+    if(!legalTargets.includes(target)) {
+        console.error(legalTargets);
+        throw "The move target is illegal";
+    }
 
     const newState = [...state];
 
@@ -252,3 +258,5 @@ state = move(state, "e2", "e4");
 state = move(state, "e7", "e6");
 state = move(state, "f1", "c4");
 state = move(state, "f8", "c5");
+state = move(state, "g1", "f3");
+state = move(state, "g8", "f6");
