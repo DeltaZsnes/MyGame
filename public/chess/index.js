@@ -3,6 +3,11 @@ const g = canvas.getContext("2d");
 
 let oldTime;
 
+const ALPHA_a = 'a'.charCodeAt(0);
+const ALPHA_h = 'h'.charCodeAt(0);
+const DIGIT_1 = '1'.charCodeAt(0);
+const DIGIT_7 = '7'.charCodeAt(0);
+
 const blackPieces = ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', '♟︎', ]
     .reduce((a, c) => {
         a[c] = true;
@@ -79,10 +84,14 @@ const render = async (deltaTime) => {
     }
 };
 
+const getLocation = (alpha, digit) => {
+    return String.fromCharCode(alpha, digit);
+};
+
 const getIndex = (position) => {
     const alpha = position.charCodeAt(0);
     const digit = position.charCodeAt(1);
-    const index = alpha - 'a'.charCodeAt(0) + (7 - (digit - '1'.charCodeAt(0))) * 8;
+    const index = alpha - ALPHA_a + (7 - (digit - DIGIT_1)) * 8;
     return {index, alpha, digit};
 };
 
@@ -92,6 +101,11 @@ const getSymbol = (state, position) => {
     const symbol = state[(alpha - 'a'.charCodeAt(0)) + (7 - (digit - '1'.charCodeAt(0))) * 8];
     return {symbol, alpha, digit};
 };
+
+const outOfBounds = (position) => {
+    const {index, alpha, digit} = getIndex(position);
+    return alpha < ALPHA_a || ALPHA_h < alpha || digit < DIGIT_1 || DIGIT_7 < digit;
+}
 
 const getLegalTargets = (state, source) => {
     const { alpha, digit, symbol } = getSymbol(state, source);
@@ -107,32 +121,79 @@ const getLegalTargets = (state, source) => {
 
     let legalTargets = [];
 
+    const whiteTeamBlock = (state, position) => whitePieces[getSymbol(state, position).symbol];
+    const blackTeamBlock = (state, position) => blackPieces[getSymbol(state, position).symbol];
+
     switch(symbol){
         case '♙':{
             for(let i=1; i<=2; i++){
-                let m = String.fromCharCode(alpha, (digit + i));
-
-                // check board bounds
-                if(digit + i > '8'.charCodeAt(0)) break;
-
-                // check team block
-                if(whitePieces[getSymbol(state, m).symbol]) break;
-
-                legalTargets.push(m);
+                const next = getLocation(alpha, digit + i);
+                if(outOfBounds(next)) break;
+                if(whiteTeamBlock(state, next)) break;
+                legalTargets.push(next);
             }
             break;
         }
         case '♟︎':{
             for(let i=1; i<=2; i++){
-                let m = String.fromCharCode(alpha, (digit - i));
-
-                // check board bounds
-                if(digit - i < '1'.charCodeAt(0)) break;
-
-                // check team block
-                if(whitePieces[getSymbol(state, m).symbol]) break;
-
-                legalTargets.push(m);
+                const next = getLocation(alpha, digit - i);
+                if(outOfBounds(next)) break;
+                if(blackTeamBlock(state, next)) break;
+                legalTargets.push(next);
+            }
+            break;
+        }
+        case '♗':{
+            for(let i=1; i<=7; i++){
+                const next = getLocation(alpha - i, digit - i);
+                if(outOfBounds(next)) break;
+                if(whiteTeamBlock(state, next)) break;
+                legalTargets.push(next);
+            }
+            for(let i=1; i<=7; i++){
+                const next = getLocation(alpha - i, digit + i);
+                if(outOfBounds(next)) break;
+                if(whiteTeamBlock(state, next)) break;
+                legalTargets.push(next);
+            }
+            for(let i=1; i<=7; i++){
+                const next = getLocation(alpha + i, digit - i);
+                if(outOfBounds(next)) break;
+                if(whiteTeamBlock(state, next)) break;
+                legalTargets.push(next);
+            }
+            for(let i=1; i<=7; i++){
+                const next = getLocation(alpha + i, digit + i);
+                if(outOfBounds(next)) break;
+                if(whiteTeamBlock(state, next)) break;
+                legalTargets.push(next);
+            }
+            break;
+        }
+        case '♝':{
+            for(let i=1; i<=7; i++){
+                const next = getLocation(alpha - i, digit - i);
+                if(outOfBounds(next)) break;
+                if(blackTeamBlock(state, next)) break;
+                legalTargets.push(next);
+            }
+            for(let i=1; i<=7; i++){
+                const next = getLocation(alpha - i, digit + i);
+                if(outOfBounds(next)) break;
+                if(blackTeamBlock(state, next)) break;
+                legalTargets.push(next);
+            }
+            for(let i=1; i<=7; i++){
+                const next = getLocation(alpha + i, digit - i);
+                if(outOfBounds(next)) break;
+                if(blackTeamBlock(state, next)) break;
+                legalTargets.push(next);
+            }
+            for(let i=1; i<=7; i++){
+                const next = getLocation(alpha + i, digit + i);
+                if(outOfBounds(next)) break;
+                if(blackTeamBlock(state, next)) break;
+                legalTargets.push(next);
             }
             break;
         }
@@ -142,6 +203,7 @@ const getLegalTargets = (state, source) => {
             throw "Unknown symbol";
     }
 
+    console.log(legalTargets);
     return legalTargets;
 };
 
@@ -175,11 +237,6 @@ const move = (state, source, target) => {
     return newState;
 };
 
-state = move(state, "e2", "e4");
-state = move(state, "e7", "e6");
-state = move(state, "f2", "f4");
-// state = move(state, "f8", "c5");
-
 const gameLoop = async (newTime) => {
     const deltaTime = newTime - oldTime;
 
@@ -190,3 +247,8 @@ const gameLoop = async (newTime) => {
 };
 
 window.requestAnimationFrame(gameLoop);
+
+state = move(state, "e2", "e4");
+state = move(state, "e7", "e6");
+state = move(state, "f1", "c4");
+state = move(state, "f8", "c5");
