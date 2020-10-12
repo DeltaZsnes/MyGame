@@ -27,7 +27,7 @@ let state = [
 ];
 
 const render = async (deltaTime) => {
-    g.fillStyle = "white";
+    g.fillStyle = "black";
     g.fillRect(0, 0, 600, 600);
 
     const s = 50;
@@ -36,16 +36,16 @@ const render = async (deltaTime) => {
         for (let x = 0; x < 8; x++) {
 
             if ((x + y) % 2 == 0) {
-                g.fillStyle = "white";
+                g.fillStyle = "lightgray";
             } else {
-                g.fillStyle = "gray";
+                g.fillStyle = "darkgray";
             }
 
             g.fillRect(x * s, y * s, s, s);
         }
     }
 
-    g.fillStyle = "black";
+    g.fillStyle = "#5946B2";
     g.font = "30px Arial";
     g.textBaseline = 'middle';
     g.textAlign = 'center';
@@ -70,7 +70,7 @@ const render = async (deltaTime) => {
     drawSymbol('e', 4, 8);
     drawSymbol('f', 5, 8);
     drawSymbol('g', 6, 8);
-    drawSymbol('h', 7, 8);
+    drawSymbol('h', 7, 8);    
 
     for (let y = 0; y < 8; y++) {
         for (let x = 0; x < 8; x++) {
@@ -91,8 +91,8 @@ const move = (state, source, target) => {
     const isWhiteTurn = state[64] === 'W';
     const isBlackTurn = !isWhiteTurn;
 
-    if (isWhiteTurn && !isWhitePiece) throw "It is white's turn";
-    if (isBlackTurn && !isBlackPiece) throw "It is black's turn";
+    if (isWhiteTurn && isBlackPiece) throw "Cannot move black piece because it is white's turn";
+    if (isBlackTurn && isWhitePiece) throw "Cannot move white piece because it is black's turn";
 
     // find possible move for piece
     // check if move is in possible moves
