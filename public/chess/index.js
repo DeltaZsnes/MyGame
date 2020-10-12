@@ -79,13 +79,78 @@ const render = async (deltaTime) => {
     }
 };
 
+const getIndex = (position) => {
+    const alpha = position.charCodeAt(0);
+    const digit = position.charCodeAt(1);
+    const index = alpha - 'a'.charCodeAt(0) + (7 - (digit - '1'.charCodeAt(0))) * 8;
+    return {index, alpha, digit};
+};
+
+const getSymbol = (state, position) => {
+    const alpha = position.charCodeAt(0);
+    const digit = position.charCodeAt(1);
+    const symbol = state[(alpha - 'a'.charCodeAt(0)) + (7 - (digit - '1'.charCodeAt(0))) * 8];
+    return {symbol, alpha, digit};
+};
+
+const getLegalTargets = (state, source) => {
+    const { alpha, digit, symbol } = getSymbol(state, source);
+
+    const isWhitePiece = whitePieces[symbol];
+    const isBlackPiece = !isWhitePiece;
+
+    const isWhiteTurn = state[64] === 'W';
+    const isBlackTurn = !isWhiteTurn;
+
+    if(isWhiteTurn && isBlackPiece) return [];
+    if(isBlackTurn && isWhitePiece) return [];
+
+    let legalTargets = [];
+
+    switch(symbol){
+        case '♙':{
+            for(let i=1; i<=2; i++){
+                let m = String.fromCharCode(alpha, (digit + i));
+
+                // check board bounds
+                if(digit + i > '8'.charCodeAt(0)) break;
+
+                // check team block
+                if(whitePieces[getSymbol(state, m).symbol]) break;
+
+                legalTargets.push(m);
+            }
+            break;
+        }
+        case '♟︎':{
+            for(let i=1; i<=2; i++){
+                let m = String.fromCharCode(alpha, (digit - i));
+
+                // check board bounds
+                if(digit - i < '1'.charCodeAt(0)) break;
+
+                // check team block
+                if(whitePieces[getSymbol(state, m).symbol]) break;
+
+                legalTargets.push(m);
+            }
+            break;
+        }
+        case ' ':
+            break;
+        default:
+            throw "Unknown symbol";
+    }
+
+    return legalTargets;
+};
+
 const move = (state, source, target) => {
     console.log(source, target);
 
-    // find piece
-    const piece = state[(7 - (source.charCodeAt(1) - '1'.charCodeAt(0))) * 8 + (source.charCodeAt(0) - 'a'.charCodeAt(0))];
-
-    const isWhitePiece = whitePieces[piece];
+    const {symbol, digit, alpha} = getSymbol(state, source);
+    
+    const isWhitePiece = whitePieces[symbol];
     const isBlackPiece = !isWhitePiece;
 
     const isWhiteTurn = state[64] === 'W';
@@ -94,22 +159,26 @@ const move = (state, source, target) => {
     if (isWhiteTurn && isBlackPiece) throw "Cannot move black piece because it is white's turn";
     if (isBlackTurn && isWhitePiece) throw "Cannot move white piece because it is black's turn";
 
-    // find possible move for piece
-    // check if move is in possible moves
-    // move the piece
-    state[(7 - (source.charCodeAt(1) - '1'.charCodeAt(0))) * 8 + (source.charCodeAt(0) - 'a'.charCodeAt(0))] = ' ';
-    state[(7 - (target.charCodeAt(1) - '1'.charCodeAt(0))) * 8 + (target.charCodeAt(0) - 'a'.charCodeAt(0))] = piece;
+    // check if move is legal
+    const legalTargets = getLegalTargets(state, source);
+    if(!legalTargets.includes(target)) throw "The move target is illegal";
 
-    if (isWhiteTurn) state[64] = 'B';
-    if (isBlackTurn) state[64] = 'W';
+    const newState = [...state];
 
-    return state;
+    // move the piece to the target location
+    newState[getIndex(source).index] = ' ';
+    newState[getIndex(target).index] = symbol;
+
+    if (isWhiteTurn) newState[64] = 'B';
+    if (isBlackTurn) newState[64] = 'W';
+
+    return newState;
 };
 
 state = move(state, "e2", "e4");
 state = move(state, "e7", "e6");
 state = move(state, "f2", "f4");
-state = move(state, "f8", "c5");
+// state = move(state, "f8", "c5");
 
 const gameLoop = async (newTime) => {
     const deltaTime = newTime - oldTime;
