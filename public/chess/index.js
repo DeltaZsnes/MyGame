@@ -132,6 +132,79 @@ const blackJumpMove = (targets, alpha, digit) => {
     targets.push(next);
 };
 
+const addDiagonalMoves = (targets, allies, enemies, alpha, digit) => {
+    for(let i=1; i<=8; i++){
+        const next = getLocation(alpha - i, digit - i);
+        if(outOfBounds(next)) break;
+        if(allies[getSymbol(state, next).symbol]) break;
+        targets.push(next);
+
+        if(enemies[getSymbol(state, next).symbol]) break;
+    }
+    for(let i=1; i<=8; i++){
+        const next = getLocation(alpha - i, digit + i);
+        if(outOfBounds(next)) break;
+        if(allies[getSymbol(state, next).symbol]) break;
+        targets.push(next);
+
+        if(enemies[getSymbol(state, next).symbol]) break;
+    }
+    for(let i=1; i<=8; i++){
+        const next = getLocation(alpha + i, digit - i);
+        if(outOfBounds(next)) break;
+        if(allies[getSymbol(state, next).symbol]) break;
+        targets.push(next);
+
+        if(enemies[getSymbol(state, next).symbol]) break;
+    }
+    for(let i=1; i<=8; i++){
+        const next = getLocation(alpha + i, digit + i);
+        if(outOfBounds(next)) break;
+        if(allies[getSymbol(state, next).symbol]) break;
+        targets.push(next);
+
+        if(enemies[getSymbol(state, next).symbol]) break;
+    }
+};
+
+const addCrossMoves = (targets, allies, enemies, alpha, digit) => {
+    for(let i=1; i<=8; i++){
+        const next = getLocation(alpha + 0, digit - i);
+        if(outOfBounds(next)) break;
+        if(allies[getSymbol(state, next).symbol]) break;
+        targets.push(next);
+
+        if(enemies[getSymbol(state, next).symbol]) break;
+    }
+
+    for(let i=1; i<=8; i++){
+        const next = getLocation(alpha + 0, digit + i);
+        if(outOfBounds(next)) break;
+        if(allies[getSymbol(state, next).symbol]) break;
+        targets.push(next);
+
+        if(enemies[getSymbol(state, next).symbol]) break;
+    }
+
+    for(let i=1; i<=8; i++){
+        const next = getLocation(alpha - i, digit + 0);
+        if(outOfBounds(next)) break;
+        if(allies[getSymbol(state, next).symbol]) break;
+        targets.push(next);
+
+        if(enemies[getSymbol(state, next).symbol]) break;
+    }
+
+    for(let i=1; i<=8; i++){
+        const next = getLocation(alpha + i, digit + 0);
+        if(outOfBounds(next)) break;
+        if(allies[getSymbol(state, next).symbol]) break;
+        targets.push(next);
+
+        if(enemies[getSymbol(state, next).symbol]) break;
+    }
+};
+
 const getLegalTargets = (state, source) => {
     const { alpha, digit, symbol } = getSymbol(state, source);
 
@@ -160,73 +233,11 @@ const getLegalTargets = (state, source) => {
             break;
         }
         case '♗':{
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha - i, digit - i);
-                if(outOfBounds(next)) break;
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-            }
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha - i, digit + i);
-                if(outOfBounds(next)) break;
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-            }
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha + i, digit - i);
-                if(outOfBounds(next)) break;
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-            }
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha + i, digit + i);
-                if(outOfBounds(next)) break;
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-            }
+            addDiagonalMoves(targets, whitePieces, blackPieces, alpha, digit);
             break;
         }
         case '♝':{
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha - i, digit - i);
-                if(outOfBounds(next)) break;
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-            }
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha - i, digit + i);
-                if(outOfBounds(next)) break;
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-            }
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha + i, digit - i);
-                if(outOfBounds(next)) break;
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-            }
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha + i, digit + i);
-                if(outOfBounds(next)) break;
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-            }
+            addDiagonalMoves(targets, blackPieces, whitePieces, alpha, digit);
             break;
         }
         case '♘':{
@@ -280,72 +291,18 @@ const getLegalTargets = (state, source) => {
             break;
         }
         case '♖':
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha + 0, digit - i);
-                if(outOfBounds(next)) break;
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-            }
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha + 0, digit + i);
-                if(outOfBounds(next)) break;
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-            }
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha - i, digit + 0);
-                if(outOfBounds(next)) break;
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-            }
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha + i, digit + 0);
-                if(outOfBounds(next)) break;
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-            }
+            addCrossMoves(targets, whitePieces, blackPieces, alpha, digit);
             break;
         case '♜':
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha + 0, digit - i);
-                if(outOfBounds(next)) break;
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-            }
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha + 0, digit + i);
-                if(outOfBounds(next)) break;
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-            }
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha - i, digit + 0);
-                if(outOfBounds(next)) break;
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-            }
-            for(let i=1; i<=8; i++){
-                const next = getLocation(alpha + i, digit + 0);
-                if(outOfBounds(next)) break;
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-            }
+            addCrossMoves(targets, blackPieces, whitePieces, alpha, digit);
+            break;
+        case '♕':
+            addCrossMoves(targets, whitePieces, blackPieces, alpha, digit);
+            addDiagonalMoves(targets, whitePieces, blackPieces, alpha, digit);
+            break;
+        case '♛':
+            addCrossMoves(targets, blackPieces, whitePieces, alpha, digit);
+            addDiagonalMoves(targets, blackPieces, whitePieces, alpha, digit);
             break;
         case ' ':
             break;
@@ -443,5 +400,8 @@ state = move(state, "f6", "g4");
 state = whiteCastlingRight(state);
 state = move(state, "c5", "f2");
 state = move(state, "f1", "f2");
+state = move(state, "g4", "f2");
+state = move(state, "g1", "f2");
+state = move(state, "d8", "f6");
 
 window.requestAnimationFrame(gameLoop);
