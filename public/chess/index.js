@@ -205,6 +205,14 @@ const addCrossMoves = (targets, allies, enemies, alpha, digit) => {
     }
 };
 
+const whiteLost = (state) => {
+    return !state.includes('♔');
+};
+
+const blackLost = (state) => {
+    return !state.includes('♚');
+};
+
 const getLegalTargets = (state, source) => {
     const { alpha, digit, symbol } = getSymbol(state, source);
 
@@ -378,6 +386,39 @@ const whiteCastlingRight = (state) => {
     return newState;
 };
 
+const whiteCastlingLeft = (state) => {
+    const newState = [...state];
+    newState[getIndex("e1").index] = ' ';
+    newState[getIndex("b1").index] = '♔';
+    newState[getIndex("a1").index] = ' ';
+    newState[getIndex("d1").index] = '♖';
+    newState[INDEX_TURN] = BLACK_TURN;
+    historyPush({ special: "whiteCastlingLeft" });
+    return newState;
+};
+
+const blackCastlingRight = (state) => {
+    const newState = [...state];
+    newState[getIndex("e8").index] = ' ';
+    newState[getIndex("g8").index] = '♚';
+    newState[getIndex("h8").index] = ' ';
+    newState[getIndex("f8").index] = '♜';
+    newState[INDEX_TURN] = BLACK_TURN;
+    historyPush({ special: "whiteCastlingRight" });
+    return newState;
+};
+
+const blackCastlingLeft = (state) => {
+    const newState = [...state];
+    newState[getIndex("e8").index] = ' ';
+    newState[getIndex("b8").index] = '♚';
+    newState[getIndex("a8").index] = ' ';
+    newState[getIndex("d8").index] = '♜';
+    newState[INDEX_TURN] = BLACK_TURN;
+    historyPush({ special: "whiteCastlingLeft" });
+    return newState;
+};
+
 const gameLoop = async (newTime) => {
     const deltaTime = newTime - oldTime;
 
@@ -403,5 +444,34 @@ state = move(state, "f1", "f2");
 state = move(state, "g4", "f2");
 state = move(state, "g1", "f2");
 state = move(state, "d8", "f6");
+state = move(state, "f2", "g1");
+state = move(state, "h7", "h5");
+state = move(state, "c1", "g5");
+state = move(state, "f6", "b2");
+state = move(state, "b1", "d2");
+state = move(state, "b7", "b6");
+state = move(state, "g5", "f4");
+state = move(state, "d7", "d6");
+state = move(state, "a1", "b1");
+state = move(state, "b2", "f6");
+state = move(state, "f4", "g5");
+state = move(state, "f6", "g6");
+state = move(state, "c2", "c3");
+state = move(state, "e6", "e5");
+state = move(state, "d1", "a4");
+state = move(state, "c8", "d7");
+state = move(state, "c4", "b5");
+state = move(state, "c7", "c6");
+state = move(state, "b5", "a6");
+state = move(state, "b8", "a6");
+state = move(state, "a4", "a6");
+state = move(state, "h5", "h4");
+state = move(state, "h2", "h3");
+state = move(state, "f7", "f6");
+state = move(state, "g5", "e3");
+state = move(state, "d7", "h3");
+state = move(state, "g1", "f1");
+state = move(state, "g6", "g2");
+state = move(state, "f1", "e1");
 
 window.requestAnimationFrame(gameLoop);
