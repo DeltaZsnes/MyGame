@@ -7,6 +7,9 @@ const ALPHA_a = 'a'.charCodeAt(0);
 const ALPHA_h = 'h'.charCodeAt(0);
 const DIGIT_1 = '1'.charCodeAt(0);
 const DIGIT_7 = '7'.charCodeAt(0);
+const INDEX_TURN = 64;
+const WHITE_TURN = 'W';
+const BLACK_TURN = 'B';
 
 const whitePieces = ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖', '♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙', ]
     .reduce((a, c) => {
@@ -29,8 +32,15 @@ let state = [
     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
     '♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙',
     '♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖',
-    'W',
+    WHITE_TURN,
 ];
+
+const history = [];
+
+const historyPush = (record) => {
+    history.push(record);
+    console.log(record);
+};
 
 const render = async (deltaTime) => {
     g.fillStyle = "black";
@@ -108,14 +118,14 @@ const outOfBounds = (position) => {
     return alpha < ALPHA_a || ALPHA_h < alpha || digit < DIGIT_1 || DIGIT_7 < digit;
 }
 
-const whiteMoveCheck = (targets, alpha, digit) => {
+const whiteJumpMove = (targets, alpha, digit) => {
     const next = getLocation(alpha, digit);
     if(outOfBounds(next)) return;
     if(whitePieces[getSymbol(state, next).symbol]) return;
     targets.push(next);
 };
 
-const blackMoveCheck = (targets, alpha, digit) => {
+const blackJumpMove = (targets, alpha, digit) => {
     const next = getLocation(alpha, digit);
     if(outOfBounds(next)) return;
     if(blackPieces[getSymbol(state, next).symbol]) return;
@@ -128,7 +138,7 @@ const getLegalTargets = (state, source) => {
     const isWhitePiece = whitePieces[symbol];
     const isBlackPiece = !isWhitePiece;
 
-    const isWhiteTurn = state[64] === 'W';
+    const isWhiteTurn = state[INDEX_TURN] === WHITE_TURN;
     const isBlackTurn = !isWhiteTurn;
 
     if(isWhiteTurn && isBlackPiece) return [];
@@ -139,74 +149,211 @@ const getLegalTargets = (state, source) => {
     switch(symbol){
         case '♙':{
             for(let i=1; i<=2; i++){
-                whiteMoveCheck(targets, alpha, digit + i);
+                whiteJumpMove(targets, alpha, digit + i);
             }
             break;
         }
         case '♟︎':{
             for(let i=1; i<=2; i++){
-                blackMoveCheck(targets, alpha, digit - i);
+                blackJumpMove(targets, alpha, digit - i);
             }
             break;
         }
         case '♗':{
-            for(let i=1; i<=7; i++){
-                whiteMoveCheck(targets, alpha - i, digit - i);
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha - i, digit - i);
+                if(outOfBounds(next)) break;
+                if(whitePieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(blackPieces[getSymbol(state, next).symbol]) break;
             }
-            for(let i=1; i<=7; i++){
-                whiteMoveCheck(targets, alpha - i, digit + i);
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha - i, digit + i);
+                if(outOfBounds(next)) break;
+                if(whitePieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(blackPieces[getSymbol(state, next).symbol]) break;
             }
-            for(let i=1; i<=7; i++){
-                whiteMoveCheck(targets, alpha + i, digit - i);
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha + i, digit - i);
+                if(outOfBounds(next)) break;
+                if(whitePieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(blackPieces[getSymbol(state, next).symbol]) break;
             }
-            for(let i=1; i<=7; i++){
-                whiteMoveCheck(targets, alpha + i, digit + i);
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha + i, digit + i);
+                if(outOfBounds(next)) break;
+                if(whitePieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(blackPieces[getSymbol(state, next).symbol]) break;
             }
             break;
         }
         case '♝':{
-            for(let i=1; i<=7; i++){
-                blackMoveCheck(targets, alpha - i, digit - i);
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha - i, digit - i);
+                if(outOfBounds(next)) break;
+                if(blackPieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(whitePieces[getSymbol(state, next).symbol]) break;
             }
-            for(let i=1; i<=7; i++){
-                blackMoveCheck(targets, alpha - i, digit + i);
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha - i, digit + i);
+                if(outOfBounds(next)) break;
+                if(blackPieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(whitePieces[getSymbol(state, next).symbol]) break;
             }
-            for(let i=1; i<=7; i++){
-                blackMoveCheck(targets, alpha + i, digit - i);
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha + i, digit - i);
+                if(outOfBounds(next)) break;
+                if(blackPieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(whitePieces[getSymbol(state, next).symbol]) break;
             }
-            for(let i=1; i<=7; i++){
-                blackMoveCheck(targets, alpha + i, digit + i);
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha + i, digit + i);
+                if(outOfBounds(next)) break;
+                if(blackPieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(whitePieces[getSymbol(state, next).symbol]) break;
             }
             break;
         }
         case '♘':{
-            whiteMoveCheck(targets, alpha - 1, digit - 2);
-            whiteMoveCheck(targets, alpha - 1, digit + 2);
-            whiteMoveCheck(targets, alpha + 1, digit - 2);
-            whiteMoveCheck(targets, alpha + 1, digit + 2);
-            whiteMoveCheck(targets, alpha - 2, digit - 1);
-            whiteMoveCheck(targets, alpha - 2, digit + 1);
-            whiteMoveCheck(targets, alpha + 2, digit - 1);
-            whiteMoveCheck(targets, alpha + 2, digit + 1);
+            whiteJumpMove(targets, alpha - 1, digit - 2);
+            whiteJumpMove(targets, alpha - 1, digit + 2);
+            whiteJumpMove(targets, alpha + 1, digit - 2);
+            whiteJumpMove(targets, alpha + 1, digit + 2);
+            whiteJumpMove(targets, alpha - 2, digit - 1);
+            whiteJumpMove(targets, alpha - 2, digit + 1);
+            whiteJumpMove(targets, alpha + 2, digit - 1);
+            whiteJumpMove(targets, alpha + 2, digit + 1);
             break;
         }
         case '♞':{
-            blackMoveCheck(targets, alpha - 1, digit - 2);
-            blackMoveCheck(targets, alpha - 1, digit + 2);
-            blackMoveCheck(targets, alpha + 1, digit - 2);
-            blackMoveCheck(targets, alpha + 1, digit + 2);
-            blackMoveCheck(targets, alpha - 2, digit - 1);
-            blackMoveCheck(targets, alpha - 2, digit + 1);
-            blackMoveCheck(targets, alpha + 2, digit - 1);
-            blackMoveCheck(targets, alpha + 2, digit + 1);
+            blackJumpMove(targets, alpha - 1, digit - 2);
+            blackJumpMove(targets, alpha - 1, digit + 2);
+            blackJumpMove(targets, alpha + 1, digit - 2);
+            blackJumpMove(targets, alpha + 1, digit + 2);
+            blackJumpMove(targets, alpha - 2, digit - 1);
+            blackJumpMove(targets, alpha - 2, digit + 1);
+            blackJumpMove(targets, alpha + 2, digit - 1);
+            blackJumpMove(targets, alpha + 2, digit + 1);
             break;
         }
+        case '♔':{
+            whiteJumpMove(targets, alpha - 1, digit - 1);
+            whiteJumpMove(targets, alpha - 1, digit + 0);
+            whiteJumpMove(targets, alpha - 1, digit + 1);
+
+            whiteJumpMove(targets, alpha + 0, digit - 1);
+            whiteJumpMove(targets, alpha + 0, digit + 0);
+            whiteJumpMove(targets, alpha + 0, digit + 1);
+
+            whiteJumpMove(targets, alpha + 1, digit - 1);
+            whiteJumpMove(targets, alpha + 1, digit + 0);
+            whiteJumpMove(targets, alpha + 1, digit + 1);
+            break;
+        }
+        case '♚':{
+            whiteJumpMove(targets, alpha - 1, digit - 1);
+            whiteJumpMove(targets, alpha - 1, digit + 0);
+            whiteJumpMove(targets, alpha - 1, digit + 1);
+
+            whiteJumpMove(targets, alpha + 0, digit - 1);
+            whiteJumpMove(targets, alpha + 0, digit + 0);
+            whiteJumpMove(targets, alpha + 0, digit + 1);
+
+            whiteJumpMove(targets, alpha + 1, digit - 1);
+            whiteJumpMove(targets, alpha + 1, digit + 0);
+            whiteJumpMove(targets, alpha + 1, digit + 1);
+            break;
+        }
+        case '♖':
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha + 0, digit - i);
+                if(outOfBounds(next)) break;
+                if(whitePieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(blackPieces[getSymbol(state, next).symbol]) break;
+            }
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha + 0, digit + i);
+                if(outOfBounds(next)) break;
+                if(whitePieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(blackPieces[getSymbol(state, next).symbol]) break;
+            }
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha - i, digit + 0);
+                if(outOfBounds(next)) break;
+                if(whitePieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(blackPieces[getSymbol(state, next).symbol]) break;
+            }
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha + i, digit + 0);
+                if(outOfBounds(next)) break;
+                if(whitePieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(blackPieces[getSymbol(state, next).symbol]) break;
+            }
+            break;
+        case '♜':
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha + 0, digit - i);
+                if(outOfBounds(next)) break;
+                if(blackPieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(whitePieces[getSymbol(state, next).symbol]) break;
+            }
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha + 0, digit + i);
+                if(outOfBounds(next)) break;
+                if(blackPieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(whitePieces[getSymbol(state, next).symbol]) break;
+            }
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha - i, digit + 0);
+                if(outOfBounds(next)) break;
+                if(blackPieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(whitePieces[getSymbol(state, next).symbol]) break;
+            }
+            for(let i=1; i<=8; i++){
+                const next = getLocation(alpha + i, digit + 0);
+                if(outOfBounds(next)) break;
+                if(blackPieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
+
+                if(whitePieces[getSymbol(state, next).symbol]) break;
+            }
+            break;
         case ' ':
             break;
         default:
-            throw "Unknown symbol";
+            throw "Symbol has no defined moves";
     }
 
+    console.log({targets});
     return targets;
 };
 
@@ -218,7 +365,7 @@ const move = (state, source, target) => {
     const isWhitePiece = whitePieces[symbol];
     const isBlackPiece = !isWhitePiece;
 
-    const isWhiteTurn = state[64] === 'W';
+    const isWhiteTurn = state[INDEX_TURN] === WHITE_TURN;
     const isBlackTurn = !isWhiteTurn;
 
     if (isWhiteTurn && isBlackPiece) throw "Cannot move black piece because it is white's turn";
@@ -237,9 +384,40 @@ const move = (state, source, target) => {
     newState[getIndex(source).index] = ' ';
     newState[getIndex(target).index] = symbol;
 
-    if (isWhiteTurn) newState[64] = 'B';
-    if (isBlackTurn) newState[64] = 'W';
+    if (isWhiteTurn) newState[INDEX_TURN] = BLACK_TURN;
+    if (isBlackTurn) newState[INDEX_TURN] = WHITE_TURN;
 
+    historyPush({
+        source,
+        target
+    });
+    return newState;
+};
+
+const canWhiteCastlingRight = (state, history) => {
+    const king = getSymbol(state, "e1");
+    if(king.symbol !== '♔') return false;
+
+    const rook = getSymbol(state, "h1");
+    if(rook.symbol !== '♖') return false;
+
+    for(let move of history){
+        if(move.source === "e1" || move.target === "e1" || move.source == "h1" || move.target == "h1") return false;
+    }
+
+    //todo check if path is under threat
+
+    return true;
+};
+
+const whiteCastlingRight = (state) => {
+    const newState = [...state];
+    newState[getIndex("e1").index] = ' ';
+    newState[getIndex("g1").index] = '♔';
+    newState[getIndex("h1").index] = ' ';
+    newState[getIndex("f1").index] = '♖';
+    newState[INDEX_TURN] = BLACK_TURN;
+    historyPush({ special: "whiteCastlingRight" });
     return newState;
 };
 
@@ -252,7 +430,7 @@ const gameLoop = async (newTime) => {
     window.requestAnimationFrame(gameLoop);
 };
 
-window.requestAnimationFrame(gameLoop);
+gameLoop(null);
 
 state = move(state, "e2", "e4");
 state = move(state, "e7", "e6");
@@ -260,3 +438,10 @@ state = move(state, "f1", "c4");
 state = move(state, "f8", "c5");
 state = move(state, "g1", "f3");
 state = move(state, "g8", "f6");
+state = move(state, "d2", "d3");
+state = move(state, "f6", "g4");
+state = whiteCastlingRight(state);
+state = move(state, "c5", "f2");
+state = move(state, "f1", "f2");
+
+window.requestAnimationFrame(gameLoop);
