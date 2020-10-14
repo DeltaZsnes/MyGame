@@ -403,7 +403,7 @@ const blackCastlingLeft = (state) => {
     return newState;
 };
 
-const getFutures = (state, allies, enemies) => {
+const getChildren = (state, allies, enemies) => {
     let alliesMoves = [];
     let enemiesMoves = [];
 
@@ -427,56 +427,39 @@ const getFutures = (state, allies, enemies) => {
             if(allies[symbol]){
                 let targets = getTargets(state, source);
 
-                if(symbol == '♔' || symbol == '♚'){
-                    let f = targets.filter(target => !enemiesMoves.some(move => move.target == target));
-                    targets = f;
-                }
-                
                 alliesMoves = alliesMoves.concat(targets.map(target => ({ source, target })));
             }
         }
     }
 
-    let futures = alliesMoves.map(({source, target}) => ({
+    let children = alliesMoves.map(({source, target}) => ({
         source,
         target,
         state: exeMove(state, source, target)
     }));
 
-    futures = futures.filter(future => !isGameOver(future.state));
-    return futures;
+    children = children.filter(child => !isGameOver(child.state));
+    return children;
 };
 
-const think = (state) => {
-    const isWhiteTurn = state[INDEX_TURN] === WHITE_TURN;
-    const isBlackTurn = !isWhiteTurn;
-    const futures = isWhiteTurn ? getFutures(state, whitePieces, blackPieces) : getFutures(state, blackPieces, whitePieces);
-
-    if(futures.length == 0){
-        console.log("Game Over");
-        return;
-    }
-
-    const randomIndex = Math.floor(Math.random() * futures.length);
-    const future = futures[randomIndex];
-    return future;
-};
+const ai1 = new ai_random();
+const ai2 = new ai_daniel();
 
 const gameLoop = async (newTime) => {
     const deltaTime = newTime - oldTime;
 
     await render(deltaTime);
-    const future = think(state);
+    const child = ai1.think(state);
 
-    if(future){
-        state = exeMove(state, future.source, future.target);
+    if(child){
+        state = exeMove(state, child.source, child.target);
     }
 
     oldTime = newTime;
 
     setTimeout(() => {
         window.requestAnimationFrame(gameLoop);
-    }, 100);
+    }, 1000);
 };
 
 window.requestAnimationFrame(gameLoop);
