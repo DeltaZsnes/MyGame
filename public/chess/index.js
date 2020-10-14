@@ -213,6 +213,10 @@ const blackLost = (state) => {
     return !state.includes('♚');
 };
 
+const isGameOver = (state) => {
+    return !state.includes('♔') || !state.includes('♚');
+};
+
 const getTargets = (state, source) => {
     const { alpha, digit, symbol } = getSymbol(state, source);
 
@@ -430,11 +434,13 @@ const getFutures = (state, allies, enemies) => {
         }
     }
 
-    const futures = alliesMoves.map(({source, target}) => ({
+    let futures = alliesMoves.map(({source, target}) => ({
         source,
         target,
         state: exeMove(state, source, target)
     }));
+
+    futures = futures.filter(future => !isGameOver(future.state));
     return futures;
 };
 
