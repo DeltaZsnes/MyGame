@@ -219,16 +219,6 @@ const isGameOver = (state) => {
 
 const getTargets = (state, source) => {
     const { alpha, digit, symbol } = getSymbol(state, source);
-
-    const isWhitePiece = whitePieces[symbol];
-    const isBlackPiece = !isWhitePiece;
-
-    const isWhiteTurn = state[INDEX_TURN] === WHITE_TURN;
-    const isBlackTurn = !isWhiteTurn;
-
-    if(isWhiteTurn && isBlackPiece) return [];
-    if(isBlackTurn && isWhitePiece) return [];
-
     const targets = [];
 
     switch(symbol){
@@ -422,14 +412,27 @@ const getFutures = (state, allies, enemies) => {
             const source = getLocation(alpha, digit);
             const symbol = getSymbol(state, source).symbol;
             
-            if(allies[symbol]){
-                const targets = getTargets(state, source);
-                alliesMoves = alliesMoves.concat(targets.map(target => ({ source, target })));
-            }
-            
             if(enemies[symbol]){
                 const targets = getTargets(state, source);
                 enemiesMoves = enemiesMoves.concat(targets.map(target => ({ source, target })));
+            }
+        }
+    }
+
+    for(let alpha = ALPHA_a; alpha <= ALPHA_h; alpha++){
+        for(let digit = DIGIT_1; digit <= DIGIT_8; digit++){
+            const source = getLocation(alpha, digit);
+            const symbol = getSymbol(state, source).symbol;
+            
+            if(allies[symbol]){
+                let targets = getTargets(state, source);
+
+                if(symbol == '♔' || symbol == '♚'){
+                    let f = targets.filter(target => !enemiesMoves.some(move => move.target == target));
+                    targets = f;
+                }
+                
+                alliesMoves = alliesMoves.concat(targets.map(target => ({ source, target })));
             }
         }
     }
