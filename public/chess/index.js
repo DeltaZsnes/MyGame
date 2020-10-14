@@ -6,7 +6,7 @@ let oldTime;
 const ALPHA_a = 'a'.charCodeAt(0);
 const ALPHA_h = 'h'.charCodeAt(0);
 const DIGIT_1 = '1'.charCodeAt(0);
-const DIGIT_7 = '7'.charCodeAt(0);
+const DIGIT_8 = '8'.charCodeAt(0);
 const INDEX_TURN = 64;
 const WHITE_TURN = 'W';
 const BLACK_TURN = 'B';
@@ -115,7 +115,7 @@ const getSymbol = (state, position) => {
 
 const outOfBounds = (position) => {
     const {index, alpha, digit} = getIndex(position);
-    return alpha < ALPHA_a || ALPHA_h < alpha || digit < DIGIT_1 || DIGIT_7 < digit;
+    return alpha < ALPHA_a || ALPHA_h < alpha || digit < DIGIT_1 || DIGIT_8 < digit;
 }
 
 const whiteJumpMove = (targets, alpha, digit) => {
@@ -318,13 +318,10 @@ const getLegalTargets = (state, source) => {
             throw "Symbol has no defined moves";
     }
 
-    console.log({targets});
     return targets;
 };
 
-const move = (state, source, target) => {
-    console.log(source, target);
-
+const exeMove = (state, source, target) => {
     const {symbol, digit, alpha} = getSymbol(state, source);
     
     const isWhitePiece = whitePieces[symbol];
@@ -419,59 +416,101 @@ const blackCastlingLeft = (state) => {
     return newState;
 };
 
+const getFutures = (state, allies, enemies) => {
+    let alliesMoves = [];
+    let enemiesMoves = [];
+
+    for(let alpha = ALPHA_a; alpha <= ALPHA_h; alpha++){
+        for(let digit = DIGIT_1; digit <= DIGIT_8; digit++){
+            const source = getLocation(alpha, digit);
+            const symbol = getSymbol(state, source).symbol;
+            
+            if(allies[symbol]){
+                const targets = getLegalTargets(state, source);
+                alliesMoves = alliesMoves.concat(targets.map(target => ({ source, target })));
+            }
+            
+            if(enemies[symbol]){
+                const targets = getLegalTargets(state, source);
+                enemiesMoves = enemiesMoves.concat(targets.map(target => ({ source, target })));
+            }
+        }
+    }
+
+    const futureStates = alliesMoves.map(move => exeMove(state, move.source, move.target));
+    return futureStates;
+};
+
+const think = (state) => {
+    const isWhiteTurn = state[INDEX_TURN] === WHITE_TURN;
+    const isBlackTurn = !isWhiteTurn;
+    const futures = isWhiteTurn ? getFutures(state, whitePieces, blackPieces) : getFutures(state, blackPieces, whitePieces);
+
+    if(futures.length == 0){
+        console.log("Game Over");
+        return state;
+    }
+
+    const randomIndex = Math.floor(Math.random() * futures.length);
+    const future = futures[randomIndex];
+    return future;
+};
+
 const gameLoop = async (newTime) => {
     const deltaTime = newTime - oldTime;
 
     await render(deltaTime);
+    state = think(state);
 
     oldTime = newTime;
-    window.requestAnimationFrame(gameLoop);
+
+    setTimeout(() => {
+        window.requestAnimationFrame(gameLoop);
+    }, 100);
 };
 
-gameLoop(null);
-
-state = move(state, "e2", "e4");
-state = move(state, "e7", "e6");
-state = move(state, "f1", "c4");
-state = move(state, "f8", "c5");
-state = move(state, "g1", "f3");
-state = move(state, "g8", "f6");
-state = move(state, "d2", "d3");
-state = move(state, "f6", "g4");
-state = whiteCastlingRight(state);
-state = move(state, "c5", "f2");
-state = move(state, "f1", "f2");
-state = move(state, "g4", "f2");
-state = move(state, "g1", "f2");
-state = move(state, "d8", "f6");
-state = move(state, "f2", "g1");
-state = move(state, "h7", "h5");
-state = move(state, "c1", "g5");
-state = move(state, "f6", "b2");
-state = move(state, "b1", "d2");
-state = move(state, "b7", "b6");
-state = move(state, "g5", "f4");
-state = move(state, "d7", "d6");
-state = move(state, "a1", "b1");
-state = move(state, "b2", "f6");
-state = move(state, "f4", "g5");
-state = move(state, "f6", "g6");
-state = move(state, "c2", "c3");
-state = move(state, "e6", "e5");
-state = move(state, "d1", "a4");
-state = move(state, "c8", "d7");
-state = move(state, "c4", "b5");
-state = move(state, "c7", "c6");
-state = move(state, "b5", "a6");
-state = move(state, "b8", "a6");
-state = move(state, "a4", "a6");
-state = move(state, "h5", "h4");
-state = move(state, "h2", "h3");
-state = move(state, "f7", "f6");
-state = move(state, "g5", "e3");
-state = move(state, "d7", "h3");
-state = move(state, "g1", "f1");
-state = move(state, "g6", "g2");
-state = move(state, "f1", "e1");
-
 window.requestAnimationFrame(gameLoop);
+
+// state = exeMove(state, "e2", "e4");
+// state = exeMove(state, "e7", "e6");
+// state = exeMove(state, "f1", "c4");
+// state = exeMove(state, "f8", "c5");
+// state = exeMove(state, "g1", "f3");
+// state = exeMove(state, "g8", "f6");
+// state = exeMove(state, "d2", "d3");
+// state = exeMove(state, "f6", "g4");
+// state = whiteCastlingRight(state);
+// state = exeMove(state, "c5", "f2");
+// state = exeMove(state, "f1", "f2");
+// state = exeMove(state, "g4", "f2");
+// state = exeMove(state, "g1", "f2");
+// state = exeMove(state, "d8", "f6");
+// state = exeMove(state, "f2", "g1");
+// state = exeMove(state, "h7", "h5");
+// state = exeMove(state, "c1", "g5");
+// state = exeMove(state, "f6", "b2");
+// state = exeMove(state, "b1", "d2");
+// state = exeMove(state, "b7", "b6");
+// state = exeMove(state, "g5", "f4");
+// state = exeMove(state, "d7", "d6");
+// state = exeMove(state, "a1", "b1");
+// state = exeMove(state, "b2", "f6");
+// state = exeMove(state, "f4", "g5");
+// state = exeMove(state, "f6", "g6");
+// state = exeMove(state, "c2", "c3");
+// state = exeMove(state, "e6", "e5");
+// state = exeMove(state, "d1", "a4");
+// state = exeMove(state, "c8", "d7");
+// state = exeMove(state, "c4", "b5");
+// state = exeMove(state, "c7", "c6");
+// state = exeMove(state, "b5", "a6");
+// state = exeMove(state, "b8", "a6");
+// state = exeMove(state, "a4", "a6");
+// state = exeMove(state, "h5", "h4");
+// state = exeMove(state, "h2", "h3");
+// state = exeMove(state, "f7", "f6");
+// state = exeMove(state, "g5", "e3");
+// state = exeMove(state, "d7", "h3");
+// state = exeMove(state, "g1", "f1");
+// state = exeMove(state, "g6", "g2");
+// state = exeMove(state, "f1", "e1");
