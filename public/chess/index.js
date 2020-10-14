@@ -95,6 +95,41 @@ const render = async (deltaTime) => {
     }
 };
 
+const scoreSymbol = (symbol) => {
+    switch(symbol){
+        case '♙':
+        case '♟︎':
+            return 1;
+
+        case '♘':
+        case '♞':
+            return 2;
+
+        case '♗':
+        case '♝':
+            return 3;
+
+        case '♗':
+        case '♝':
+            return 3;
+
+        case '♖':
+        case '♜':
+            return 5;
+
+        case '♕':
+        case '♛':
+            return 9;
+
+        case '♔':
+        case '♚':
+            return 9000;
+
+        default:
+            return 0;
+    }
+};
+
 const getLocation = (alpha, digit) => {
     return String.fromCharCode(alpha, digit);
 };
@@ -449,7 +484,7 @@ const gameLoop = async (newTime) => {
     const deltaTime = newTime - oldTime;
 
     await render(deltaTime);
-    const child = ai1.think(state);
+    const child = ai2.think(state);
 
     if(child){
         state = exeMove(state, child.source, child.target);
