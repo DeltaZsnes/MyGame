@@ -213,7 +213,7 @@ const blackLost = (state) => {
     return !state.includes('♚');
 };
 
-const getLegalTargets = (state, source) => {
+const getTargets = (state, source) => {
     const { alpha, digit, symbol } = getSymbol(state, source);
 
     const isWhitePiece = whitePieces[symbol];
@@ -333,13 +333,6 @@ const exeMove = (state, source, target) => {
     if (isWhiteTurn && isBlackPiece) throw "Cannot move black piece because it is white's turn";
     if (isBlackTurn && isWhitePiece) throw "Cannot move white piece because it is black's turn";
 
-    // check if move is legal
-    const legalTargets = getLegalTargets(state, source);
-    if(!legalTargets.includes(target)) {
-        console.error(legalTargets);
-        throw "The move target is illegal";
-    }
-
     const newState = [...state];
 
     // move the piece to the target location
@@ -426,19 +419,23 @@ const getFutures = (state, allies, enemies) => {
             const symbol = getSymbol(state, source).symbol;
             
             if(allies[symbol]){
-                const targets = getLegalTargets(state, source);
+                const targets = getTargets(state, source);
                 alliesMoves = alliesMoves.concat(targets.map(target => ({ source, target })));
             }
             
             if(enemies[symbol]){
-                const targets = getLegalTargets(state, source);
+                const targets = getTargets(state, source);
                 enemiesMoves = enemiesMoves.concat(targets.map(target => ({ source, target })));
             }
         }
     }
 
-    const futureStates = alliesMoves.map(move => exeMove(state, move.source, move.target));
-    return futureStates;
+    const futures = alliesMoves.map(({source, target}) => ({
+        source,
+        target,
+        state: exeMove(state, source, target)
+    }));
+    return futures;
 };
 
 const think = (state) => {
@@ -448,7 +445,7 @@ const think = (state) => {
 
     if(futures.length == 0){
         console.log("Game Over");
-        return state;
+        return;
     }
 
     const randomIndex = Math.floor(Math.random() * futures.length);
@@ -460,7 +457,11 @@ const gameLoop = async (newTime) => {
     const deltaTime = newTime - oldTime;
 
     await render(deltaTime);
-    state = think(state);
+    const future = think(state);
+
+    if(future){
+        state = exeMove(state, future.source, future.target);
+    }
 
     oldTime = newTime;
 
