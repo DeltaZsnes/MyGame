@@ -57,7 +57,8 @@ function ai_daniel() {
 
         this.visited[key] = true;
 
-        if(parent.depth >= 2){
+        if(parent.depth >= 4){
+            parent.score = this.scoreState(parent.state, allies, enemies);
             this.grandchildren.push(parent);
             return;
         }
@@ -65,10 +66,8 @@ function ai_daniel() {
         const children = getChildren(parent.state, allies, enemies);
         
         for(let child of children){
-            child.score = this.scoreState(child.state, allies, enemies);
             child.parent = parent;
             child.depth = parent.depth + 1;
-            
             this.evaluate(child, enemies, allies);
         }
     };
@@ -105,7 +104,7 @@ function ai_daniel() {
         
         let parent = best.parent;
         
-        while(parent.depth < 1){
+        while(parent.depth > 1){
             parent = parent.parent;
         }
 

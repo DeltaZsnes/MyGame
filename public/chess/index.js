@@ -460,8 +460,7 @@ const gameLoop = async (newTime) => {
             state = child.state;
             historyPush({
                 source: child.source,
-                target: child.target,
-                score: child.score
+                target: child.target
             });
         }
     }
