@@ -95,41 +95,6 @@ const render = async (newTime) => {
     }
 };
 
-const scoreSymbol = (symbol) => {
-    switch(symbol){
-        case '♙':
-        case '♟︎':
-            return 1;
-
-        case '♘':
-        case '♞':
-            return 2;
-
-        case '♗':
-        case '♝':
-            return 3;
-
-        case '♗':
-        case '♝':
-            return 3;
-
-        case '♖':
-        case '♜':
-            return 5;
-
-        case '♕':
-        case '♛':
-            return 9;
-
-        case '♔':
-        case '♚':
-            return 9000;
-
-        default:
-            return 0;
-    }
-};
-
 const getLocation = (alpha, digit) => {
     return String.fromCharCode(alpha, digit);
 };
@@ -153,17 +118,10 @@ const outOfBounds = (position) => {
     return alpha < ALPHA_a || ALPHA_h < alpha || digit < DIGIT_1 || DIGIT_8 < digit;
 }
 
-const whiteJumpMove = (targets, alpha, digit) => {
+const addJumpMove = (targets, allies, enemies, alpha, digit) => {
     const next = getLocation(alpha, digit);
     if(outOfBounds(next)) return;
-    if(whitePieces[getSymbol(state, next).symbol]) return;
-    targets.push(next);
-};
-
-const blackJumpMove = (targets, alpha, digit) => {
-    const next = getLocation(alpha, digit);
-    if(outOfBounds(next)) return;
-    if(blackPieces[getSymbol(state, next).symbol]) return;
+    if(allies[getSymbol(state, next).symbol]) return;
     targets.push(next);
 };
 
@@ -259,13 +217,21 @@ const getTargets = (state, source) => {
     switch(symbol){
         case '♙':{
             for(let i=1; i<=2; i++){
-                whiteJumpMove(targets, alpha, digit + i);
+                const next = getLocation(alpha, digit + i);
+                if(outOfBounds(next)) break;
+                if(whitePieces[getSymbol(state, next).symbol]) break;
+                if(blackPieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
             }
             break;
         }
         case '♟︎':{
             for(let i=1; i<=2; i++){
-                blackJumpMove(targets, alpha, digit - i);
+                const next = getLocation(alpha, digit - i);
+                if(outOfBounds(next)) break;
+                if(whitePieces[getSymbol(state, next).symbol]) break;
+                if(blackPieces[getSymbol(state, next).symbol]) break;
+                targets.push(next);
             }
             break;
         }
@@ -278,73 +244,79 @@ const getTargets = (state, source) => {
             break;
         }
         case '♘':{
-            whiteJumpMove(targets, alpha - 1, digit - 2);
-            whiteJumpMove(targets, alpha - 1, digit + 2);
-            whiteJumpMove(targets, alpha + 1, digit - 2);
-            whiteJumpMove(targets, alpha + 1, digit + 2);
-            whiteJumpMove(targets, alpha - 2, digit - 1);
-            whiteJumpMove(targets, alpha - 2, digit + 1);
-            whiteJumpMove(targets, alpha + 2, digit - 1);
-            whiteJumpMove(targets, alpha + 2, digit + 1);
+            addJumpMove(targets, whitePieces, blackPieces, alpha - 1, digit - 2);
+            addJumpMove(targets, whitePieces, blackPieces, alpha - 1, digit + 2);
+            addJumpMove(targets, whitePieces, blackPieces, alpha + 1, digit - 2);
+            addJumpMove(targets, whitePieces, blackPieces, alpha + 1, digit + 2);
+            addJumpMove(targets, whitePieces, blackPieces, alpha - 2, digit - 1);
+            addJumpMove(targets, whitePieces, blackPieces, alpha - 2, digit + 1);
+            addJumpMove(targets, whitePieces, blackPieces, alpha + 2, digit - 1);
+            addJumpMove(targets, whitePieces, blackPieces, alpha + 2, digit + 1);
             break;
         }
         case '♞':{
-            blackJumpMove(targets, alpha - 1, digit - 2);
-            blackJumpMove(targets, alpha - 1, digit + 2);
-            blackJumpMove(targets, alpha + 1, digit - 2);
-            blackJumpMove(targets, alpha + 1, digit + 2);
-            blackJumpMove(targets, alpha - 2, digit - 1);
-            blackJumpMove(targets, alpha - 2, digit + 1);
-            blackJumpMove(targets, alpha + 2, digit - 1);
-            blackJumpMove(targets, alpha + 2, digit + 1);
+            addJumpMove(targets, blackPieces, whitePieces, alpha - 1, digit - 2);
+            addJumpMove(targets, blackPieces, whitePieces, alpha - 1, digit + 2);
+            addJumpMove(targets, blackPieces, whitePieces, alpha + 1, digit - 2);
+            addJumpMove(targets, blackPieces, whitePieces, alpha + 1, digit + 2);
+            addJumpMove(targets, blackPieces, whitePieces, alpha - 2, digit - 1);
+            addJumpMove(targets, blackPieces, whitePieces, alpha - 2, digit + 1);
+            addJumpMove(targets, blackPieces, whitePieces, alpha + 2, digit - 1);
+            addJumpMove(targets, blackPieces, whitePieces, alpha + 2, digit + 1);
             break;
         }
         case '♔':{
-            whiteJumpMove(targets, alpha - 1, digit - 1);
-            whiteJumpMove(targets, alpha - 1, digit + 0);
-            whiteJumpMove(targets, alpha - 1, digit + 1);
+            addJumpMove(targets, whitePieces, blackPieces, alpha - 1, digit - 1);
+            addJumpMove(targets, whitePieces, blackPieces, alpha - 1, digit + 0);
+            addJumpMove(targets, whitePieces, blackPieces, alpha - 1, digit + 1);
 
-            whiteJumpMove(targets, alpha + 0, digit - 1);
-            whiteJumpMove(targets, alpha + 0, digit + 0);
-            whiteJumpMove(targets, alpha + 0, digit + 1);
+            addJumpMove(targets, whitePieces, blackPieces, alpha + 0, digit - 1);
+            addJumpMove(targets, whitePieces, blackPieces, alpha + 0, digit + 0);
+            addJumpMove(targets, whitePieces, blackPieces, alpha + 0, digit + 1);
 
-            whiteJumpMove(targets, alpha + 1, digit - 1);
-            whiteJumpMove(targets, alpha + 1, digit + 0);
-            whiteJumpMove(targets, alpha + 1, digit + 1);
+            addJumpMove(targets, whitePieces, blackPieces, alpha + 1, digit - 1);
+            addJumpMove(targets, whitePieces, blackPieces, alpha + 1, digit + 0);
+            addJumpMove(targets, whitePieces, blackPieces, alpha + 1, digit + 1);
             break;
         }
         case '♚':{
-            whiteJumpMove(targets, alpha - 1, digit - 1);
-            whiteJumpMove(targets, alpha - 1, digit + 0);
-            whiteJumpMove(targets, alpha - 1, digit + 1);
+            addJumpMove(targets, blackPieces, whitePieces, alpha - 1, digit - 1);
+            addJumpMove(targets, blackPieces, whitePieces, alpha - 1, digit + 0);
+            addJumpMove(targets, blackPieces, whitePieces, alpha - 1, digit + 1);
 
-            whiteJumpMove(targets, alpha + 0, digit - 1);
-            whiteJumpMove(targets, alpha + 0, digit + 0);
-            whiteJumpMove(targets, alpha + 0, digit + 1);
+            addJumpMove(targets, blackPieces, whitePieces, alpha + 0, digit - 1);
+            addJumpMove(targets, blackPieces, whitePieces, alpha + 0, digit + 0);
+            addJumpMove(targets, blackPieces, whitePieces, alpha + 0, digit + 1);
 
-            whiteJumpMove(targets, alpha + 1, digit - 1);
-            whiteJumpMove(targets, alpha + 1, digit + 0);
-            whiteJumpMove(targets, alpha + 1, digit + 1);
+            addJumpMove(targets, blackPieces, whitePieces, alpha + 1, digit - 1);
+            addJumpMove(targets, blackPieces, whitePieces, alpha + 1, digit + 0);
+            addJumpMove(targets, blackPieces, whitePieces, alpha + 1, digit + 1);
             break;
         }
-        case '♖':
+        case '♖':{
             addCrossMoves(targets, whitePieces, blackPieces, alpha, digit);
             break;
-        case '♜':
+        }
+        case '♜':{
             addCrossMoves(targets, blackPieces, whitePieces, alpha, digit);
             break;
-        case '♕':
+        }
+        case '♕':{
             addCrossMoves(targets, whitePieces, blackPieces, alpha, digit);
             addDiagonalMoves(targets, whitePieces, blackPieces, alpha, digit);
             break;
-        case '♛':
+        }
+        case '♛':{
             addCrossMoves(targets, blackPieces, whitePieces, alpha, digit);
             addDiagonalMoves(targets, blackPieces, whitePieces, alpha, digit);
             break;
-        case ' ':
+        }
+        case ' ':{
             break;
-        default:
+        }
+        default:{
             throw "Symbol has no defined moves";
+        }
     }
 
     return targets;
@@ -474,15 +446,23 @@ const ai2 = new ai_daniel();
 
 const gameLoop = async (newTime) => {
     await render(newTime);
-    
+
+    if(isGameOver(state)){
+        console.log("game over");
+        return;
+    }
+
     if(newTime - thinkTime > 1000){
         const child = ai2.think(state);
         thinkTime = newTime;
 
         if(child){
-            const { source, target} = child;
-            state = exeMove(state, source, target);
-            historyPush({source, target});
+            state = child.state;
+            historyPush({
+                source: child.source,
+                target: child.target,
+                score: child.score
+            });
         }
     }
 
