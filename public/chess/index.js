@@ -1,7 +1,7 @@
 const canvas = document.getElementById("myCanvas");
 const g = canvas.getContext("2d");
-
-let oldTime;
+let renderTime = new Date().getMilliseconds();
+let thinkTime = new Date().getMilliseconds();
 
 const ALPHA_a = 'a'.charCodeAt(0);
 const ALPHA_h = 'h'.charCodeAt(0);
@@ -42,7 +42,7 @@ const historyPush = (record) => {
     console.log(record);
 };
 
-const render = async (deltaTime) => {
+const render = async (newTime) => {
     g.fillStyle = "black";
     g.fillRect(0, 0, 600, 600);
 
@@ -371,10 +371,6 @@ const exeMove = (state, source, target) => {
     if (isWhiteTurn) newState[INDEX_TURN] = BLACK_TURN;
     if (isBlackTurn) newState[INDEX_TURN] = WHITE_TURN;
 
-    historyPush({
-        source,
-        target
-    });
     return newState;
 };
 
@@ -401,7 +397,6 @@ const whiteCastlingRight = (state) => {
     newState[getIndex("h1").index] = ' ';
     newState[getIndex("f1").index] = '♖';
     newState[INDEX_TURN] = BLACK_TURN;
-    historyPush({ special: "whiteCastlingRight" });
     return newState;
 };
 
@@ -412,7 +407,6 @@ const whiteCastlingLeft = (state) => {
     newState[getIndex("a1").index] = ' ';
     newState[getIndex("d1").index] = '♖';
     newState[INDEX_TURN] = BLACK_TURN;
-    historyPush({ special: "whiteCastlingLeft" });
     return newState;
 };
 
@@ -423,7 +417,6 @@ const blackCastlingRight = (state) => {
     newState[getIndex("h8").index] = ' ';
     newState[getIndex("f8").index] = '♜';
     newState[INDEX_TURN] = BLACK_TURN;
-    historyPush({ special: "whiteCastlingRight" });
     return newState;
 };
 
@@ -434,7 +427,6 @@ const blackCastlingLeft = (state) => {
     newState[getIndex("a8").index] = ' ';
     newState[getIndex("d8").index] = '♜';
     newState[INDEX_TURN] = BLACK_TURN;
-    historyPush({ special: "whiteCastlingLeft" });
     return newState;
 };
 
@@ -481,20 +473,20 @@ const ai1 = new ai_random();
 const ai2 = new ai_daniel();
 
 const gameLoop = async (newTime) => {
-    const deltaTime = newTime - oldTime;
+    await render(newTime);
+    
+    if(newTime - thinkTime > 1000){
+        const child = ai2.think(state);
+        thinkTime = newTime;
 
-    await render(deltaTime);
-    const child = ai2.think(state);
-
-    if(child){
-        state = exeMove(state, child.source, child.target);
+        if(child){
+            const { source, target} = child;
+            state = exeMove(state, source, target);
+            historyPush({source, target});
+        }
     }
 
-    oldTime = newTime;
-
-    setTimeout(() => {
-        window.requestAnimationFrame(gameLoop);
-    }, 1000);
+    window.requestAnimationFrame(gameLoop);
 };
 
 window.requestAnimationFrame(gameLoop);

@@ -1,4 +1,6 @@
 function ai_daniel() {
+    this.visited = {};
+
     this.scoreState = (state, allies, enemies) => {
         let alliesScore = 0;
         let enemiesScore = 0;
@@ -17,6 +19,17 @@ function ai_daniel() {
         }
 
         return alliesScore - enemiesScore;
+    };
+
+    this.evaluate = (child, allies, enemies) => {
+        const key = child.state.join("");
+        if(this.visited[key]) return;
+
+        this.visited[key] = true;
+
+        child.score = this.scoreState(child.state, allies, enemies);
+
+        const children = getChildren(state, allies, enemies);
     };
 
     this.think = (state) => {
