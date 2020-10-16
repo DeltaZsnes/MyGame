@@ -487,10 +487,39 @@ const getChildren = (state, allies, enemies) => {
         }
     }
 
-    let children = alliesMoves.map(({symbol, source, target}) => ({
-        text: symbol + " " + source + " to " + target,
-        state: exeMove(state, source, target)
-    }));
+    let children = alliesMoves.map(({symbol, source, target}) => {
+        const s = getIndex(source);
+        const t = getIndex(target);
+
+        if(symbol == '♙' && t.digit == DIGIT_8){
+            const newState = [...state];
+            newState[s.index] = ' ';
+            newState[t.index] = '♕';
+            newState[INDEX_TURN] = 'B';
+
+            return {
+                text: symbol + " " + source + " to " + target + " -> " + "♕",
+                state: newState,
+            }
+        }
+
+        if(symbol == '♟︎' && t.digit == DIGIT_1){
+            const newState = [...state];
+            newState[s.index] = ' ';
+            newState[t.index] = '♛';
+            newState[INDEX_TURN] = 'W';
+
+            return {
+                text: symbol + " " + source + " to " + target + " -> " + "♛",
+                state: newState,
+            }
+        }
+
+        return {
+            text: symbol + " " + source + " to " + target,
+            state: exeMove(state, source, target),
+        };
+    });
     return children;
 };
 
@@ -525,49 +554,4 @@ const gameLoop = async (newTime) => {
 };
 
 window.requestAnimationFrame(gameLoop);
-
-// state = exeMove(state, "e2", "e4");
-// state = exeMove(state, "e7", "e6");
-// state = exeMove(state, "f1", "c4");
-// state = exeMove(state, "f8", "c5");
-// state = exeMove(state, "g1", "f3");
-// state = exeMove(state, "g8", "f6");
-// state = exeMove(state, "d2", "d3");
-// state = exeMove(state, "f6", "g4");
-// state = whiteCastlingRight(state);
-// state = exeMove(state, "c5", "f2");
-// state = exeMove(state, "f1", "f2");
-// state = exeMove(state, "g4", "f2");
-// state = exeMove(state, "g1", "f2");
-// state = exeMove(state, "d8", "f6");
-// state = exeMove(state, "f2", "g1");
-// state = exeMove(state, "h7", "h5");
-// state = exeMove(state, "c1", "g5");
-// state = exeMove(state, "f6", "b2");
-// state = exeMove(state, "b1", "d2");
-// state = exeMove(state, "b7", "b6");
-// state = exeMove(state, "g5", "f4");
-// state = exeMove(state, "d7", "d6");
-// state = exeMove(state, "a1", "b1");
-// state = exeMove(state, "b2", "f6");
-// state = exeMove(state, "f4", "g5");
-// state = exeMove(state, "f6", "g6");
-// state = exeMove(state, "c2", "c3");
-// state = exeMove(state, "e6", "e5");
-// state = exeMove(state, "d1", "a4");
-// state = exeMove(state, "c8", "d7");
-// state = exeMove(state, "c4", "b5");
-// state = exeMove(state, "c7", "c6");
-// state = exeMove(state, "b5", "a6");
-// state = exeMove(state, "b8", "a6");
-// state = exeMove(state, "a4", "a6");
-// state = exeMove(state, "h5", "h4");
-// state = exeMove(state, "h2", "h3");
-// state = exeMove(state, "f7", "f6");
-// state = exeMove(state, "g5", "e3");
-// state = exeMove(state, "d7", "h3");
-// state = exeMove(state, "g1", "f1");
-// state = exeMove(state, "g6", "g2");
-// state = exeMove(state, "f1", "e1");
-
 console.log("game start");
