@@ -497,15 +497,13 @@ const getChildren = (state, allies, enemies) => {
 const ai1 = new ai_random();
 const ai2 = new ai_daniel();
 
-const gameLoop = async (newTime) => {
-    await render(newTime);
-
+const thinkLoop = async (newTime) => {
     if(isGameOver(currentState)){
         console.log("game over");
         return;
     }
 
-    if(newTime - thinkTime > 1000){
+    if(newTime - thinkTime >= 1000){
         const child = ai2.think(currentState);
         thinkTime = newTime;
 
@@ -519,6 +517,11 @@ const gameLoop = async (newTime) => {
     }
 
     window.requestAnimationFrame(gameLoop);
+};
+
+const gameLoop = async (newTime) => {
+    await render(newTime);
+    window.requestAnimationFrame(thinkLoop);
 };
 
 window.requestAnimationFrame(gameLoop);
@@ -566,3 +569,5 @@ window.requestAnimationFrame(gameLoop);
 // state = exeMove(state, "g1", "f1");
 // state = exeMove(state, "g6", "g2");
 // state = exeMove(state, "f1", "e1");
+
+console.log("game start");

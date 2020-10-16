@@ -96,24 +96,54 @@ function ai_daniel() {
                 continue;
             }
 
-            
-
             const level2 = getChildren(child1.state, enemies, allies);
             child1.children = level2;
 
             for(let child2 of level2){
                 child2.parent = child1;
 
-
                 if(isGameOver(child2.state)){
                     child2.score = Number.NEGATIVE_INFINITY;
                 }
                 else{
                     child2.score = this.scoreState(child2.state, allies, enemies);
-                }
+
+                //     const level3 = getChildren(child1.state, enemies, allies);
+                //     child2.children = level3;
+
+                //     for(let child3 of level3){
+                //         child3.parent = child2;
+
+                //         if(isGameOver(child3.state)){
+                //             child3.score = Number.POSITIVE_INFINITY;
+                //         }
+                //         else{
+                //             child3.score = this.scoreState(child3.state, allies, enemies);
+
+                //             const level4 = getChildren(child1.state, enemies, allies);
+                //             child3.children = level4;
+
+                //             for(let child4 of level4){
+                //                 child4.parent = child3;
+
+                //                 if(isGameOver(child4.state)){
+                //                     child4.score = Number.NEGATIVE_INFINITY;
+                //                 }
+                //                 else{
+                //                     child4.score = this.scoreState(child4.state, allies, enemies);
+                //                 }
+
+                //                 if(!child3.score) child3.score = child4.score;
+                //                 child3.score = Math.min(child3.score, child4.score);        
+                //             }
+                //         }
+
+                //         if(!child2.score) child2.score = child3.score;
+                //         child2.score = Math.max(child2.score, child3.score);
+                //     }
+                // }
                 
                 if(!child1.score) child1.score = child2.score;
-
                 child1.score = Math.min(child1.score, child2.score);
             }
         }
