@@ -6,6 +6,8 @@ let thinkTime = new Date().getMilliseconds();
 const ALPHA_a = 'a'.charCodeAt(0);
 const ALPHA_h = 'h'.charCodeAt(0);
 const DIGIT_1 = '1'.charCodeAt(0);
+const DIGIT_2 = '2'.charCodeAt(0);
+const DIGIT_7 = '7'.charCodeAt(0);
 const DIGIT_8 = '8'.charCodeAt(0);
 const INDEX_TURN = 64;
 const WHITE_TURN = 'W';
@@ -132,6 +134,14 @@ const outOfBounds = (position) => {
     return alpha < ALPHA_a || ALPHA_h < alpha || digit < DIGIT_1 || DIGIT_8 < digit;
 }
 
+const addMoveJump = (targets, allies, enemies, alpha, digit) => {
+    const next = getLocation(alpha, digit);
+    if(outOfBounds(next)) return;
+    if(allies[getSymbol(state, next).symbol]) return;
+    if(enemies[getSymbol(state, next).symbol]) return;
+    targets.push(next);
+};
+
 const addAttackJump = (targets, allies, enemies, alpha, digit) => {
     const next = getLocation(alpha, digit);
     if(outOfBounds(next)) return;
@@ -229,25 +239,15 @@ const getTargets = (state, source) => {
 
     switch(symbol){
         case '♙':{
-            for(let i=1; i<=2; i++){
-                const next = getLocation(alpha, digit + i);
-                if(outOfBounds(next)) break;
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-            }
+            if(digit == DIGIT_2) addMoveJump(targets, whitePieces, blackPieces, alpha, digit + 2);
+            addMoveJump(targets, whitePieces, blackPieces, alpha, digit + 1);
             addAttackJump(targets, whitePieces, blackPieces, alpha - 1, digit + 1);
             addAttackJump(targets, whitePieces, blackPieces, alpha + 1, digit + 1);
             break;
         }
         case '♟︎':{
-            for(let i=1; i<=2; i++){
-                const next = getLocation(alpha, digit - i);
-                if(outOfBounds(next)) break;
-                if(whitePieces[getSymbol(state, next).symbol]) break;
-                if(blackPieces[getSymbol(state, next).symbol]) break;
-                targets.push(next);
-            }
+            if(digit == DIGIT_7) addMoveJump(targets, whitePieces, blackPieces, alpha, digit - 2);
+            addMoveJump(targets, whitePieces, blackPieces, alpha, digit - 1);
             addAttackJump(targets, whitePieces, blackPieces, alpha - 1, digit - 1);
             addAttackJump(targets, whitePieces, blackPieces, alpha + 1, digit - 1);
             break;
