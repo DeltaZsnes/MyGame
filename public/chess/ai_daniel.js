@@ -68,6 +68,12 @@ function ai_daniel() {
         const allies = isWhiteTurn ? whitePieces : blackPieces;
         const enemies = isWhiteTurn ? blackPieces : whitePieces;
 
+        // depth 1 pick the best case scenario
+        // depth 2 pick from depth 1 that has the best worst case scenario
+        // depth 3 pick the best case scenario after picking depth 2
+        // depth 4 pick from depth 1 that has the best worst case scenario
+        // score should be computed recursively
+
         const root = {
             state,
             depth: 0,
@@ -76,15 +82,12 @@ function ai_daniel() {
         
         for(let child1 of level1){
             child1.parent = root;
+            this.futures.push(child1);
 
             if(isGameOver(child1.state)){
                 child1.score = Number.POSITIVE_INFINITY;
-                return child1;
+                continue;
             }
-            // else{
-            //     child1.score = this.scoreState(child1.state, allies, enemies);
-            // }
-            // this.futures.push(child1);
 
             const level2 = getChildren(child1.state, enemies, allies);
 
@@ -97,21 +100,10 @@ function ai_daniel() {
                 else{
                     child2.score = this.scoreState(child2.state, allies, enemies);
                 }
-                this.futures.push(child2);
+                
+                if(!child1.score) child1.score = child2.score;
 
-                // const level3 = getChildren(child2.state, allies, enemies);
-
-                // for(let child3 of level3){
-                //     child3.parent = child2;
-
-                //     if(isGameOver(child3.state)){
-                //         child3.score = Number.POSITIVE_INFINITY;
-                //     }
-                //     else{
-                //         child3.score = this.scoreState(child3.state, allies, enemies);
-                //     }
-                //     this.futures.push(child3);
-                // }
+                child1.score = Math.min(child1.score, child2.score);
             }
         }
 
@@ -127,13 +119,13 @@ function ai_daniel() {
             return a;
         }, { score: Number.NEGATIVE_INFINITY, state: null });
 
-        let parent = best;
+        // let parent = best;
         
-        while(parent.parent != root){
-            parent = parent.parent;
-        }
+        // while(parent.parent != root){
+        //     parent = parent.parent;
+        // }
 
-        return parent;
+        return best;
     };
 
     return this;

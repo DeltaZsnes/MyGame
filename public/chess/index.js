@@ -135,6 +135,41 @@ const outOfBounds = (position) => {
     return alpha < ALPHA_a || ALPHA_h < alpha || digit < DIGIT_1 || DIGIT_8 < digit;
 }
 
+const addMoveNorth = (targets, allies, enemies, alpha, digit) => {
+    {
+        const next = getLocation(alpha, digit + 1);
+        if(outOfBounds(next)) return;
+        if(allies[getSymbol(state, next).symbol]) return;
+        if(enemies[getSymbol(state, next).symbol]) return;
+    }
+
+    {
+        const next = getLocation(alpha, digit + 2);
+        if(outOfBounds(next)) return;
+        if(allies[getSymbol(state, next).symbol]) return;
+        if(enemies[getSymbol(state, next).symbol]) return;
+        targets.push(next);
+    }
+};
+
+const addMoveSouth = (targets, allies, enemies, alpha, digit) => {
+    {
+        const next = getLocation(alpha, digit - 1);
+        if(outOfBounds(next)) return;
+        if(allies[getSymbol(state, next).symbol]) return;
+        if(enemies[getSymbol(state, next).symbol]) return;
+        targets.push(next);
+    }
+
+    {
+        const next = getLocation(alpha, digit - 2);
+        if(outOfBounds(next)) return;
+        if(allies[getSymbol(state, next).symbol]) return;
+        if(enemies[getSymbol(state, next).symbol]) return;
+        targets.push(next);
+    }
+};
+
 const addMoveJump = (targets, allies, enemies, alpha, digit) => {
     const next = getLocation(alpha, digit);
     if(outOfBounds(next)) return;
@@ -240,15 +275,15 @@ const getTargets = (state, source) => {
 
     switch(symbol){
         case '♙':{
-            if(digit == DIGIT_2) addMoveJump(targets, whitePieces, blackPieces, alpha, digit + 2);
+            if(digit == DIGIT_2) addMoveNorth(targets, whitePieces, whitePieces, alpha, digit);
             addMoveJump(targets, whitePieces, blackPieces, alpha, digit + 1);
             addAttackJump(targets, whitePieces, blackPieces, alpha - 1, digit + 1);
             addAttackJump(targets, whitePieces, blackPieces, alpha + 1, digit + 1);
             break;
         }
         case '♟︎':{
-            if(digit == DIGIT_7) addMoveJump(targets, blackPieces, whitePieces, alpha, digit - 2);
-            addMoveJump(targets, blackPieces, whitePieces, alpha, digit - 1);
+            if(digit == DIGIT_7) addMoveSouth(targets, blackPieces, whitePieces, alpha, digit);
+            addMoveJump(targets, whitePieces, blackPieces, alpha, digit - 1);
             addAttackJump(targets, blackPieces, whitePieces, alpha - 1, digit - 1);
             addAttackJump(targets, blackPieces, whitePieces, alpha + 1, digit - 1);
             break;
