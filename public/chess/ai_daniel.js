@@ -141,7 +141,7 @@ function ai_daniel() {
                 //         if(!child2.score) child2.score = child3.score;
                 //         child2.score = Math.max(child2.score, child3.score);
                 //     }
-                // }
+                }
                 
                 if(!child1.score) child1.score = child2.score;
                 child1.score = Math.min(child1.score, child2.score);
