@@ -37,18 +37,6 @@ let state = [
     WHITE_TURN,
 ];
 
-// state = [
-//     '♚', '♚', '♚', '♚', '♚', '♚', '♚', '♚',
-//     '♚', '♚', '♚', '♚', '♚', '♚', '♚', '♚',
-//     '♚', '♚', '♚', '♚', '♚', '♚', '♚', '♚',
-//     '♚', '♚', '♚', '♚', '♚', '♚', '♚', '♚',
-//     '♚', '♚', '♚', '♚', '♚', '♚', '♚', '♚',
-//     '♚', '♚', '♚', '♚', '♚', '♚', '♚', '♚',
-//     '♚', '♚', '♚', '♚', '♚', '♚', '♚', '♚',
-//     '♚', '♚', '♚', '♚', '♔', '♚', '♚', '♚',
-//     WHITE_TURN,
-// ];
-
 const prettyState = (state) => {
     let s = state[INDEX_TURN];
     s += "\n";
@@ -259,10 +247,10 @@ const getTargets = (state, source) => {
             break;
         }
         case '♟︎':{
-            if(digit == DIGIT_7) addMoveJump(targets, whitePieces, blackPieces, alpha, digit - 2);
-            addMoveJump(targets, whitePieces, blackPieces, alpha, digit - 1);
-            addAttackJump(targets, whitePieces, blackPieces, alpha - 1, digit - 1);
-            addAttackJump(targets, whitePieces, blackPieces, alpha + 1, digit - 1);
+            if(digit == DIGIT_7) addMoveJump(targets, blackPieces, whitePieces, alpha, digit - 2);
+            addMoveJump(targets, blackPieces, whitePieces, alpha, digit - 1);
+            addAttackJump(targets, blackPieces, whitePieces, alpha - 1, digit - 1);
+            addAttackJump(targets, blackPieces, whitePieces, alpha + 1, digit - 1);
             break;
         }
         case '♗':{

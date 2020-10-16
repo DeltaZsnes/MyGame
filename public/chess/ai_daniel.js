@@ -83,7 +83,6 @@ function ai_daniel() {
             }
 
             child1.score = this.scoreState(child1.state, allies, enemies);
-            this.futures.push(child1);
         }
 
         for(let child1 of level1){
@@ -98,7 +97,7 @@ function ai_daniel() {
                 }
 
                 child2.score = this.scoreState(child2.state, allies, enemies);
-
+                this.futures.push(child2);
             }
         }
 
