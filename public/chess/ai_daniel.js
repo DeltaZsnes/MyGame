@@ -83,23 +83,24 @@ function ai_daniel() {
             }
 
             child1.score = this.scoreState(state, allies, enemies);
+            this.futures.push(child1);
         }
 
-        for(let child1 of level1){
-            const level2 = getChildren(child1.state, enemies, allies);
+        // for(let child1 of level1){
+        //     const level2 = getChildren(child1.state, enemies, allies);
 
-            for(let child2 of level2){
-                child2.parent = child1;
+        //     for(let child2 of level2){
+        //         child2.parent = child1;
 
-                if(isGameOver(child2.state)){
-                    child2.score = Number.NEGATIVE_INFINITY;
-                    continue;
-                }
+        //         if(isGameOver(child2.state)){
+        //             child2.score = Number.NEGATIVE_INFINITY;
+        //             continue;
+        //         }
 
-                child2.score = this.scoreState(state, allies, enemies);
-                this.futures.push(child2);
-            }
-        }
+        //         child2.score = this.scoreState(state, allies, enemies);
+
+        //     }
+        // }
 
         const best = this.futures.reduce((a, c) => {
             if(c.score > a.score){
@@ -113,7 +114,7 @@ function ai_daniel() {
             return a;
         }, { score: Number.NEGATIVE_INFINITY, state: null });
 
-        let parent = best.parent;
+        let parent = best;
         
         while(parent.parent != root){
             parent = parent.parent;

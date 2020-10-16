@@ -49,6 +49,19 @@ let state = [
 //     WHITE_TURN,
 // ];
 
+const prettyState = (state) => {
+    let s = state[INDEX_TURN];
+    s += "\n";
+    for(let y = 0; y<8; y++){
+        for(let x = 0; x<8; x++){
+            const symbol = state[y * 8 + x];
+            s += symbol == ' ' ? '▯' : symbol;
+        }
+        s += "\n";
+    }
+    return s;
+};
+
 const history = [];
 
 const historyPush = (record) => {
@@ -448,8 +461,7 @@ const getChildren = (state, allies, enemies) => {
     }
 
     let children = alliesMoves.map(({symbol, source, target}) => ({
-        message: symbol + " from " + source + " to " + target,
-        target,
+        message: symbol + " " + source + " to " + target,
         state: exeMove(state, source, target)
     }));
     return children;
