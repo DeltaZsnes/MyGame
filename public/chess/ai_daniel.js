@@ -58,74 +58,64 @@ function ai_daniel() {
         return alliesScore - enemiesScore;
     };
 
-    this.evaluate = (parent, allies, enemies) => {
-        const key = parent.state.join("");
-        if(this.visited[key]) return;
-
-        this.visited[key] = true;
-
-        if(parent.depth >= 3){
-            this.grandchildren.push(parent);
-            return;
-        }
-
-        const children = getChildren(parent.state, allies, enemies);
-        
-        for(let child of children){
-            child.parent = parent;
-            child.depth = parent.depth + 1;
-            this.evaluate(child, enemies, allies);
-        }
-    };
-
     this.think = (state) => {
         this.visited = {};
         this.queue = [];
-        this.grandchildren = [];
+        this.futures = [];
 
         const isWhiteTurn = state[INDEX_TURN] === WHITE_TURN;
         const isBlackTurn = !isWhiteTurn;
         const allies = isWhiteTurn ? whitePieces : blackPieces;
         const enemies = isWhiteTurn ? blackPieces : whitePieces;
-        console.log(state[INDEX_TURN]);
 
         const root = {
             state,
             depth: 0,
-            parent: null,
         };
+        const level1 = getChildren(state, allies, enemies);
         
-        this.evaluate(root, allies, enemies);
+        for(let child1 of level1){
+            child1.parent = root;
 
-        for(let child of this.grandchildren){
-            child.score = this.scoreState(child.state, allies, enemies);
-            
-            if(isWhiteTurn && whiteWon(child.state)){
-                child.score += 100000;
+            if(isGameOver(child1.state)){
+                child1.score = Number.POSITIVE_INFINITY;
+                return child1;
             }
-            if(isBlackTurn && blackWon(child.state)){
-                child.score += 100000;
+
+            child1.score = this.scoreState(state, allies, enemies);
+        }
+
+        for(let child1 of level1){
+            const level2 = getChildren(child1.state, enemies, allies);
+
+            for(let child2 of level2){
+                child2.parent = child1;
+
+                if(isGameOver(child2.state)){
+                    child2.score = Number.NEGATIVE_INFINITY;
+                    continue;
+                }
+
+                child2.score = this.scoreState(state, allies, enemies);
+                this.futures.push(child2);
             }
         }
 
-        let sorted = this.grandchildren.sort((a, b) => b.score - a.score);
-        let best = sorted[0];
-        
-        // const best = this.grandchildren.reduce((a, c) => {
-        //     if(c.score > a.score){
-        //         return c;
-        //     }
+        const best = this.futures.reduce((a, c) => {
+            if(c.score > a.score){
+                return c;
+            }
             
-        //     if(c.score == a.score && Math.random() >= 0.5){
-        //         return c;
-        //     }
+            if(c.score == a.score && Math.random() >= 0.5){
+                return c;
+            }
 
-        //     return a;
-        // }, { score: Number.NEGATIVE_INFINITY, state: null });
+            return a;
+        }, { score: Number.NEGATIVE_INFINITY, state: null });
 
         let parent = best.parent;
         
-        while(parent.depth > 1){
+        while(parent.parent != root){
             parent = parent.parent;
         }
 
