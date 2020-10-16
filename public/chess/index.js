@@ -35,6 +35,18 @@ let state = [
     WHITE_TURN,
 ];
 
+// state = [
+//     '♚', '♚', '♚', '♚', '♚', '♚', '♚', '♚',
+//     '♚', '♚', '♚', '♚', '♚', '♚', '♚', '♚',
+//     '♚', '♚', '♚', '♚', '♚', '♚', '♚', '♚',
+//     '♚', '♚', '♚', '♚', '♚', '♚', '♚', '♚',
+//     '♚', '♚', '♚', '♚', '♚', '♚', '♚', '♚',
+//     '♚', '♚', '♚', '♚', '♚', '♚', '♚', '♚',
+//     '♚', '♚', '♚', '♚', '♚', '♚', '♚', '♚',
+//     '♚', '♚', '♚', '♚', '♔', '♚', '♚', '♚',
+//     WHITE_TURN,
+// ];
+
 const history = [];
 
 const historyPush = (record) => {
@@ -118,20 +130,26 @@ const outOfBounds = (position) => {
     return alpha < ALPHA_a || ALPHA_h < alpha || digit < DIGIT_1 || DIGIT_8 < digit;
 }
 
-const addJumpMove = (targets, allies, enemies, alpha, digit) => {
+const addAttackJump = (targets, allies, enemies, alpha, digit) => {
+    const next = getLocation(alpha, digit);
+    if(outOfBounds(next)) return;
+    if(!enemies[getSymbol(state, next).symbol]) return;
+    targets.push(next);
+};
+
+const addMoveAttackJump = (targets, allies, enemies, alpha, digit) => {
     const next = getLocation(alpha, digit);
     if(outOfBounds(next)) return;
     if(allies[getSymbol(state, next).symbol]) return;
     targets.push(next);
 };
 
-const addDiagonalMoves = (targets, allies, enemies, alpha, digit) => {
+const addMoveAttackDiagonal = (targets, allies, enemies, alpha, digit) => {
     for(let i=1; i<=8; i++){
         const next = getLocation(alpha - i, digit - i);
         if(outOfBounds(next)) break;
         if(allies[getSymbol(state, next).symbol]) break;
         targets.push(next);
-
         if(enemies[getSymbol(state, next).symbol]) break;
     }
     for(let i=1; i<=8; i++){
@@ -139,7 +157,6 @@ const addDiagonalMoves = (targets, allies, enemies, alpha, digit) => {
         if(outOfBounds(next)) break;
         if(allies[getSymbol(state, next).symbol]) break;
         targets.push(next);
-
         if(enemies[getSymbol(state, next).symbol]) break;
     }
     for(let i=1; i<=8; i++){
@@ -147,7 +164,6 @@ const addDiagonalMoves = (targets, allies, enemies, alpha, digit) => {
         if(outOfBounds(next)) break;
         if(allies[getSymbol(state, next).symbol]) break;
         targets.push(next);
-
         if(enemies[getSymbol(state, next).symbol]) break;
     }
     for(let i=1; i<=8; i++){
@@ -155,18 +171,16 @@ const addDiagonalMoves = (targets, allies, enemies, alpha, digit) => {
         if(outOfBounds(next)) break;
         if(allies[getSymbol(state, next).symbol]) break;
         targets.push(next);
-
         if(enemies[getSymbol(state, next).symbol]) break;
     }
 };
 
-const addCrossMoves = (targets, allies, enemies, alpha, digit) => {
+const addMoveAttackCross = (targets, allies, enemies, alpha, digit) => {
     for(let i=1; i<=8; i++){
         const next = getLocation(alpha + 0, digit - i);
         if(outOfBounds(next)) break;
         if(allies[getSymbol(state, next).symbol]) break;
         targets.push(next);
-
         if(enemies[getSymbol(state, next).symbol]) break;
     }
 
@@ -175,7 +189,6 @@ const addCrossMoves = (targets, allies, enemies, alpha, digit) => {
         if(outOfBounds(next)) break;
         if(allies[getSymbol(state, next).symbol]) break;
         targets.push(next);
-
         if(enemies[getSymbol(state, next).symbol]) break;
     }
 
@@ -184,7 +197,6 @@ const addCrossMoves = (targets, allies, enemies, alpha, digit) => {
         if(outOfBounds(next)) break;
         if(allies[getSymbol(state, next).symbol]) break;
         targets.push(next);
-
         if(enemies[getSymbol(state, next).symbol]) break;
     }
 
@@ -193,17 +205,16 @@ const addCrossMoves = (targets, allies, enemies, alpha, digit) => {
         if(outOfBounds(next)) break;
         if(allies[getSymbol(state, next).symbol]) break;
         targets.push(next);
-
         if(enemies[getSymbol(state, next).symbol]) break;
     }
 };
 
-const whiteLost = (state) => {
-    return !state.includes('♔');
+const whiteWon = (state) => {
+    return !state.includes('♚');
 };
 
-const blackLost = (state) => {
-    return !state.includes('♚');
+const blackWon = (state) => {
+    return !state.includes('♔');
 };
 
 const isGameOver = (state) => {
@@ -223,6 +234,8 @@ const getTargets = (state, source) => {
                 if(blackPieces[getSymbol(state, next).symbol]) break;
                 targets.push(next);
             }
+            addAttackJump(targets, whitePieces, blackPieces, alpha - 1, digit + 1);
+            addAttackJump(targets, whitePieces, blackPieces, alpha + 1, digit + 1);
             break;
         }
         case '♟︎':{
@@ -233,82 +246,84 @@ const getTargets = (state, source) => {
                 if(blackPieces[getSymbol(state, next).symbol]) break;
                 targets.push(next);
             }
+            addAttackJump(targets, whitePieces, blackPieces, alpha - 1, digit - 1);
+            addAttackJump(targets, whitePieces, blackPieces, alpha + 1, digit - 1);
             break;
         }
         case '♗':{
-            addDiagonalMoves(targets, whitePieces, blackPieces, alpha, digit);
+            addMoveAttackDiagonal(targets, whitePieces, blackPieces, alpha, digit);
             break;
         }
         case '♝':{
-            addDiagonalMoves(targets, blackPieces, whitePieces, alpha, digit);
+            addMoveAttackDiagonal(targets, blackPieces, whitePieces, alpha, digit);
             break;
         }
         case '♘':{
-            addJumpMove(targets, whitePieces, blackPieces, alpha - 1, digit - 2);
-            addJumpMove(targets, whitePieces, blackPieces, alpha - 1, digit + 2);
-            addJumpMove(targets, whitePieces, blackPieces, alpha + 1, digit - 2);
-            addJumpMove(targets, whitePieces, blackPieces, alpha + 1, digit + 2);
-            addJumpMove(targets, whitePieces, blackPieces, alpha - 2, digit - 1);
-            addJumpMove(targets, whitePieces, blackPieces, alpha - 2, digit + 1);
-            addJumpMove(targets, whitePieces, blackPieces, alpha + 2, digit - 1);
-            addJumpMove(targets, whitePieces, blackPieces, alpha + 2, digit + 1);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha - 1, digit - 2);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha - 1, digit + 2);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha + 1, digit - 2);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha + 1, digit + 2);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha - 2, digit - 1);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha - 2, digit + 1);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha + 2, digit - 1);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha + 2, digit + 1);
             break;
         }
         case '♞':{
-            addJumpMove(targets, blackPieces, whitePieces, alpha - 1, digit - 2);
-            addJumpMove(targets, blackPieces, whitePieces, alpha - 1, digit + 2);
-            addJumpMove(targets, blackPieces, whitePieces, alpha + 1, digit - 2);
-            addJumpMove(targets, blackPieces, whitePieces, alpha + 1, digit + 2);
-            addJumpMove(targets, blackPieces, whitePieces, alpha - 2, digit - 1);
-            addJumpMove(targets, blackPieces, whitePieces, alpha - 2, digit + 1);
-            addJumpMove(targets, blackPieces, whitePieces, alpha + 2, digit - 1);
-            addJumpMove(targets, blackPieces, whitePieces, alpha + 2, digit + 1);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha - 1, digit - 2);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha - 1, digit + 2);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha + 1, digit - 2);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha + 1, digit + 2);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha - 2, digit - 1);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha - 2, digit + 1);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha + 2, digit - 1);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha + 2, digit + 1);
             break;
         }
         case '♔':{
-            addJumpMove(targets, whitePieces, blackPieces, alpha - 1, digit - 1);
-            addJumpMove(targets, whitePieces, blackPieces, alpha - 1, digit + 0);
-            addJumpMove(targets, whitePieces, blackPieces, alpha - 1, digit + 1);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha - 1, digit - 1);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha - 1, digit + 0);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha - 1, digit + 1);
 
-            addJumpMove(targets, whitePieces, blackPieces, alpha + 0, digit - 1);
-            addJumpMove(targets, whitePieces, blackPieces, alpha + 0, digit + 0);
-            addJumpMove(targets, whitePieces, blackPieces, alpha + 0, digit + 1);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha + 0, digit - 1);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha + 0, digit + 0);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha + 0, digit + 1);
 
-            addJumpMove(targets, whitePieces, blackPieces, alpha + 1, digit - 1);
-            addJumpMove(targets, whitePieces, blackPieces, alpha + 1, digit + 0);
-            addJumpMove(targets, whitePieces, blackPieces, alpha + 1, digit + 1);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha + 1, digit - 1);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha + 1, digit + 0);
+            addMoveAttackJump(targets, whitePieces, blackPieces, alpha + 1, digit + 1);
             break;
         }
         case '♚':{
-            addJumpMove(targets, blackPieces, whitePieces, alpha - 1, digit - 1);
-            addJumpMove(targets, blackPieces, whitePieces, alpha - 1, digit + 0);
-            addJumpMove(targets, blackPieces, whitePieces, alpha - 1, digit + 1);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha - 1, digit - 1);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha - 1, digit + 0);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha - 1, digit + 1);
 
-            addJumpMove(targets, blackPieces, whitePieces, alpha + 0, digit - 1);
-            addJumpMove(targets, blackPieces, whitePieces, alpha + 0, digit + 0);
-            addJumpMove(targets, blackPieces, whitePieces, alpha + 0, digit + 1);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha + 0, digit - 1);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha + 0, digit + 0);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha + 0, digit + 1);
 
-            addJumpMove(targets, blackPieces, whitePieces, alpha + 1, digit - 1);
-            addJumpMove(targets, blackPieces, whitePieces, alpha + 1, digit + 0);
-            addJumpMove(targets, blackPieces, whitePieces, alpha + 1, digit + 1);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha + 1, digit - 1);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha + 1, digit + 0);
+            addMoveAttackJump(targets, blackPieces, whitePieces, alpha + 1, digit + 1);
             break;
         }
         case '♖':{
-            addCrossMoves(targets, whitePieces, blackPieces, alpha, digit);
+            addMoveAttackCross(targets, whitePieces, blackPieces, alpha, digit);
             break;
         }
         case '♜':{
-            addCrossMoves(targets, blackPieces, whitePieces, alpha, digit);
+            addMoveAttackCross(targets, blackPieces, whitePieces, alpha, digit);
             break;
         }
         case '♕':{
-            addCrossMoves(targets, whitePieces, blackPieces, alpha, digit);
-            addDiagonalMoves(targets, whitePieces, blackPieces, alpha, digit);
+            addMoveAttackCross(targets, whitePieces, blackPieces, alpha, digit);
+            addMoveAttackDiagonal(targets, whitePieces, blackPieces, alpha, digit);
             break;
         }
         case '♛':{
-            addCrossMoves(targets, blackPieces, whitePieces, alpha, digit);
-            addDiagonalMoves(targets, blackPieces, whitePieces, alpha, digit);
+            addMoveAttackCross(targets, blackPieces, whitePieces, alpha, digit);
+            addMoveAttackDiagonal(targets, blackPieces, whitePieces, alpha, digit);
             break;
         }
         case ' ':{
@@ -436,8 +451,6 @@ const getChildren = (state, allies, enemies) => {
         target,
         state: exeMove(state, source, target)
     }));
-
-    children = children.filter(child => !isGameOver(child.state));
     return children;
 };
 

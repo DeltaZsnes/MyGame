@@ -3,25 +3,25 @@ function ai_daniel() {
         switch(symbol){
             case '♙':
             case '♟︎':
-                return 1;
+                return 10;
     
             case '♘':
             case '♞':
             case '♗':
             case '♝':
-                return 3;
+                return 30;
     
             case '♖':
             case '♜':
-                return 5;
+                return 50;
     
             case '♕':
             case '♛':
-                return 9;
+                return 90;
     
             case '♔':
             case '♚':
-                return 9000;
+                return 900;
 
             case ' ':
                 return 0;
@@ -35,16 +35,23 @@ function ai_daniel() {
         let alliesScore = 0;
         let enemiesScore = 0;
 
-        for(let i=0; i<64; i++){
-            const symbol = state[i];
-            const symbolScore = this.scoreSymbol(symbol);
-            
-            if(allies[symbol]){
-                alliesScore += symbolScore;
-            }
+        for(let alpha = ALPHA_a; alpha <= ALPHA_h; alpha++){
+            for(let digit = DIGIT_1; digit <= DIGIT_8; digit++){
+                const source = getLocation(alpha, digit);
+                const symbol = getSymbol(state, source).symbol;
+                
+                const symbolScore = this.scoreSymbol(symbol);
+                const targets = getTargets(state, source);
+                
+                if(allies[symbol]){
+                    alliesScore += symbolScore;
+                    alliesScore += targets.length;
+                }
 
-            if(enemies[symbol]){
-                enemiesScore += symbolScore;
+                if(enemies[symbol]){
+                    enemiesScore += symbolScore;
+                    enemiesScore += targets.length;
+                }
             }
         }
 
@@ -57,8 +64,7 @@ function ai_daniel() {
 
         this.visited[key] = true;
 
-        if(parent.depth >= 4){
-            parent.score = this.scoreState(parent.state, allies, enemies);
+        if(parent.depth >= 3){
             this.grandchildren.push(parent);
             return;
         }
@@ -81,6 +87,7 @@ function ai_daniel() {
         const isBlackTurn = !isWhiteTurn;
         const allies = isWhiteTurn ? whitePieces : blackPieces;
         const enemies = isWhiteTurn ? blackPieces : whitePieces;
+        console.log(state[INDEX_TURN]);
 
         const root = {
             state,
@@ -90,18 +97,32 @@ function ai_daniel() {
         
         this.evaluate(root, allies, enemies);
 
-        const best = this.grandchildren.reduce((a, c) => {
-            if(c.score > a.score){
-                return c;
-            }
+        for(let child of this.grandchildren){
+            child.score = this.scoreState(child.state, allies, enemies);
             
-            if(c.score == a.score && Math.random() >= 0.5){
-                return c;
+            if(isWhiteTurn && whiteWon(child.state)){
+                child.score += 100000;
             }
+            if(isBlackTurn && blackWon(child.state)){
+                child.score += 100000;
+            }
+        }
 
-            return a;
-        }, { score: Number.NEGATIVE_INFINITY, state: null });
+        let sorted = this.grandchildren.sort((a, b) => b.score - a.score);
+        let best = sorted[0];
         
+        // const best = this.grandchildren.reduce((a, c) => {
+        //     if(c.score > a.score){
+        //         return c;
+        //     }
+            
+        //     if(c.score == a.score && Math.random() >= 0.5){
+        //         return c;
+        //     }
+
+        //     return a;
+        // }, { score: Number.NEGATIVE_INFINITY, state: null });
+
         let parent = best.parent;
         
         while(parent.depth > 1){
