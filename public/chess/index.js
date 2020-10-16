@@ -467,9 +467,21 @@ const getChildren = (state, allies, enemies) => {
                 const targets = getTargets(state, source);
                 enemiesMoves = enemiesMoves.concat(targets.map(target => ({ symbol, source, target })));
             }
+        }
+    }
+
+    for(let alpha = ALPHA_a; alpha <= ALPHA_h; alpha++){
+        for(let digit = DIGIT_1; digit <= DIGIT_8; digit++){
+            const source = getLocation(alpha, digit);
+            const symbol = getSymbol(state, source).symbol;
 
             if(allies[symbol]){
-                const targets = getTargets(state, source);
+                let targets = getTargets(state, source);
+
+                if(symbol == '♔' || symbol == '♚'){
+                    targets = targets.filter(target => !enemiesMoves.some(enemiesMove => enemiesMove.target == target));
+                }
+
                 alliesMoves = alliesMoves.concat(targets.map(target => ({ symbol, source, target })));
             }
         }
@@ -501,6 +513,7 @@ const gameLoop = async (newTime) => {
             currentState = child.state;
             historyPush({
                 text: child.text,
+                state: child.state,
             });
         }
     }

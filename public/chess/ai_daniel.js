@@ -1,4 +1,6 @@
 function ai_daniel() {
+    this.pastPick = {};
+
     this.scoreSymbol = (symbol) => {
         switch(symbol){
             case '♙':
@@ -83,10 +85,18 @@ function ai_daniel() {
             
             this.choices.push(child1);
 
+            const key = child1.state.join(" ");
+            if(this.pastPick[key]){
+                child1.score = Number.NEGATIVE_INFINITY;
+                continue;
+            }
+
             if(isGameOver(child1.state)){
                 child1.score = Number.POSITIVE_INFINITY;
                 continue;
             }
+
+            
 
             const level2 = getChildren(child1.state, enemies, allies);
             child1.children = level2;
@@ -122,6 +132,10 @@ function ai_daniel() {
             return a;
         }, { score: Number.NEGATIVE_INFINITY, state: null });
 
+        {
+            const key = best.state.join(" ");
+            this.pastPick[key] = true;
+        }
         return best;
     };
 
