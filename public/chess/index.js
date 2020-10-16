@@ -53,7 +53,7 @@ const history = [];
 
 const historyPush = (record) => {
     history.push(record);
-    console.log(record);
+    console.log(record.message);
 };
 
 const render = async (newTime) => {
@@ -430,7 +430,7 @@ const getChildren = (state, allies, enemies) => {
             
             if(enemies[symbol]){
                 const targets = getTargets(state, source);
-                enemiesMoves = enemiesMoves.concat(targets.map(target => ({ source, target })));
+                enemiesMoves = enemiesMoves.concat(targets.map(target => ({ symbol, source, target })));
             }
         }
     }
@@ -442,13 +442,13 @@ const getChildren = (state, allies, enemies) => {
             
             if(allies[symbol]){
                 let targets = getTargets(state, source);
-                alliesMoves = alliesMoves.concat(targets.map(target => ({ source, target })));
+                alliesMoves = alliesMoves.concat(targets.map(target => ({ symbol, source, target })));
             }
         }
     }
 
-    let children = alliesMoves.map(({source, target}) => ({
-        source,
+    let children = alliesMoves.map(({symbol, source, target}) => ({
+        message: symbol + " from " + source + " to " + target,
         target,
         state: exeMove(state, source, target)
     }));
@@ -473,8 +473,7 @@ const gameLoop = async (newTime) => {
         if(child){
             state = child.state;
             historyPush({
-                source: child.source,
-                target: child.target
+                message: child.message,
             });
         }
     }
