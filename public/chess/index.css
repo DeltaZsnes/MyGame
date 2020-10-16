@@ -7,3 +7,8 @@ body {
 body{
     background-color: black;
 }
+
+#myCanvas{
+    width: 100vw;
+    height: 100vh;
+}

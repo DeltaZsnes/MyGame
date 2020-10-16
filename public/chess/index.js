@@ -55,10 +55,12 @@ const historyPush = (record) => {
 };
 
 const render = async (newTime) => {
+    const { width, height } = canvas.getBoundingClientRect();
+    canvas.width = width;
+    canvas.height = height;
     g.fillStyle = "black";
-    g.fillRect(0, 0, 600, 600);
-
-    const s = 50;
+    g.fillRect(0, 0, width, height);
+    const s = Math.floor(Math.min(width, height) / 9);
 
     for (let y = 0; y < 8; y++) {
         for (let x = 0; x < 8; x++) {
@@ -440,7 +442,6 @@ const getChildren = (state, allies, enemies) => {
             
             if(allies[symbol]){
                 let targets = getTargets(state, source);
-
                 alliesMoves = alliesMoves.concat(targets.map(target => ({ source, target })));
             }
         }
