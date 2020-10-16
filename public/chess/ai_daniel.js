@@ -41,16 +41,13 @@ function ai_daniel() {
                 const symbol = getSymbol(state, source).symbol;
                 
                 const symbolScore = this.scoreSymbol(symbol);
-                const targets = getTargets(state, source);
                 
                 if(allies[symbol]){
                     alliesScore += symbolScore;
-                    alliesScore += targets.length;
                 }
 
                 if(enemies[symbol]){
                     enemiesScore += symbolScore;
-                    enemiesScore += targets.length;
                 }
             }
         }
@@ -118,12 +115,6 @@ function ai_daniel() {
 
             return a;
         }, { score: Number.NEGATIVE_INFINITY, state: null });
-
-        // let parent = best;
-        
-        // while(parent.parent != root){
-        //     parent = parent.parent;
-        // }
 
         return best;
     };

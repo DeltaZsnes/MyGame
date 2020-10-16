@@ -54,7 +54,7 @@ const history = [];
 
 const historyPush = (record) => {
     history.push(record);
-    console.log(record.message);
+    console.log(record.text);
 };
 
 const render = async (newTime) => {
@@ -484,7 +484,7 @@ const getChildren = (state, allies, enemies) => {
     }
 
     let children = alliesMoves.map(({symbol, source, target}) => ({
-        message: symbol + " " + source + " to " + target,
+        text: symbol + " " + source + " to " + target,
         state: exeMove(state, source, target)
     }));
     return children;
@@ -508,7 +508,7 @@ const gameLoop = async (newTime) => {
         if(child){
             state = child.state;
             historyPush({
-                message: child.message,
+                text: child.text,
             });
         }
     }
