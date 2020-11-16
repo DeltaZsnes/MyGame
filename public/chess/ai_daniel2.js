@@ -1,5 +1,6 @@
 function ai_daniel2() {
     this.pastPick = {};
+    this.depthMax = 2;
 
     this.scoreSymbol = (symbol) => {
         switch(symbol){
@@ -59,106 +60,72 @@ function ai_daniel2() {
         return alliesScore - enemiesScore;
     };
 
-    this.think = (state) => {
-        const isWhiteTurn = state[INDEX_TURN] === WHITE_TURN;
-        const isBlackTurn = !isWhiteTurn;
-        const allies = isWhiteTurn ? whitePieces : blackPieces;
-        const enemies = isWhiteTurn ? blackPieces : whitePieces;
+    this.alphaBetaMax = (state, allies, enemies, bestScore, worstScore, depth) => {
+        depth = depth + 1;
 
-        const score = this.scoreState(state, allies, enemies);
-        const choices = getChildren(state, allies, enemies);
+        if(depth >= this.depthMax){
+            return this.scoreState(state, allies, enemies);
+        }
+
+        const children = getChildren(state, enemies, allies);
+
+        for(let child of children){
+            child.score = this.alphaBetaMin(child.state, allies, enemies, bestScore, worstScore, depth);
+            
+            if(child.score >= worstScore){
+                return worstScore;
+            }
+            
+            if(child.score > bestScore){
+                bestScore = child.score;
+            }
+        }
+
+        return bestScore;
+    };
+
+    this.alphaBetaMin = (state, allies, enemies, bestScore, worstScore, depth) => {
+        depth = depth + 1;
+
+        if(depth >= this.depthMax){
+            return this.scoreState(state, allies, enemies);
+        }
+
+        const children = getChildren(state, allies, enemies);
+
+        for(let child of children){
+            child.score = this.alphaBetaMax(child.state, allies, enemies, bestScore, worstScore, depth);
+            
+            if(child.score <= bestScore){
+                return bestScore;
+            }
+            
+            if(child.score < worstScore){
+                worstScore = child.score;
+            }
+        }
+
+        return worstScore;
     };
 
     this.think = (state) => {
         this.choices = [];
-
         const isWhiteTurn = state[INDEX_TURN] === WHITE_TURN;
-        const isBlackTurn = !isWhiteTurn;
         const allies = isWhiteTurn ? whitePieces : blackPieces;
         const enemies = isWhiteTurn ? blackPieces : whitePieces;
-
-        // depth 1 pick the best case scenario
-        // depth 2 pick from depth 1 that has the best worst case scenario
-        // depth 3 pick the best case scenario after picking depth 2
-        // depth 4 pick from depth 1 that has the best worst case scenario
-        // score should be computed recursively
-
-        const root = {
-            state,
-            depth: 0,
-        };
-        const level1 = getChildren(state, allies, enemies);
-        root.children = level1;
+        const children = getChildren(state, allies, enemies);
         
-        for(let child1 of level1){
-            child1.parent = root;
-            
-            this.choices.push(child1);
-
-            const key = child1.state.join(" ");
+        for(let child of children){
+            const key = child.state.join(" ");
             if(this.pastPick[key]){
-                child1.score = Number.NEGATIVE_INFINITY;
+                child.score = Number.NEGATIVE_INFINITY;
+                this.choices.push(child);
                 continue;
             }
 
-            if(isGameOver(child1.state)){
-                child1.score = Number.POSITIVE_INFINITY;
-                continue;
-            }
-
-            const level2 = getChildren(child1.state, enemies, allies);
-            child1.children = level2;
-
-            for(let child2 of level2){
-                child2.parent = child1;
-
-                if(isGameOver(child2.state)){
-                    child2.score = Number.NEGATIVE_INFINITY;
-                }
-                else{
-                    child2.score = this.scoreState(child2.state, allies, enemies);
-
-                //     const level3 = getChildren(child1.state, enemies, allies);
-                //     child2.children = level3;
-
-                //     for(let child3 of level3){
-                //         child3.parent = child2;
-
-                //         if(isGameOver(child3.state)){
-                //             child3.score = Number.POSITIVE_INFINITY;
-                //         }
-                //         else{
-                //             child3.score = this.scoreState(child3.state, allies, enemies);
-
-                //             const level4 = getChildren(child1.state, enemies, allies);
-                //             child3.children = level4;
-
-                //             for(let child4 of level4){
-                //                 child4.parent = child3;
-
-                //                 if(isGameOver(child4.state)){
-                //                     child4.score = Number.NEGATIVE_INFINITY;
-                //                 }
-                //                 else{
-                //                     child4.score = this.scoreState(child4.state, allies, enemies);
-                //                 }
-
-                //                 if(!child3.score) child3.score = child4.score;
-                //                 child3.score = Math.min(child3.score, child4.score);        
-                //             }
-                //         }
-
-                //         if(!child2.score) child2.score = child3.score;
-                //         child2.score = Math.max(child2.score, child3.score);
-                //     }
-                }
-                
-                if(!child1.score) child1.score = child2.score;
-                child1.score = Math.min(child1.score, child2.score);
-            }
+            child.score = this.alphaBetaMax(child.state, allies, enemies, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, 0);
+            this.choices.push(child);
         }
-
-        this.choices = this.choices.sort((a, b) => b.score - a.score);
 
         const best = this.choices.reduce((a, c) => {
             if(c.score > a.score){
@@ -176,6 +143,7 @@ function ai_daniel2() {
             const key = best.state.join(" ");
             this.pastPick[key] = true;
         }
+
         return best;
     };
 

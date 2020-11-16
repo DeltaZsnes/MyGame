@@ -533,19 +533,17 @@ const thinkLoop = async (newTime) => {
         return;
     }
 
-    if(newTime - thinkTime >= 1000){
-        currentAi = blackTurn ? blackAi : whiteAi;
-        const child = currentAi.think(currentState);
-        thinkTime = newTime;
-        blackTurn = !blackTurn;
+    currentAi = blackTurn ? blackAi : whiteAi;
+    const child = currentAi.think(currentState);
+    thinkTime = newTime;
+    blackTurn = !blackTurn;
 
-        if(child){
-            currentState = child.state;
-            historyPush({
-                text: child.text,
-                state: child.state,
-            });
-        }
+    if(child){
+        currentState = child.state;
+        historyPush({
+            text: child.text,
+            state: child.state,
+        });
     }
 
     window.requestAnimationFrame(gameLoop);
@@ -553,7 +551,10 @@ const thinkLoop = async (newTime) => {
 
 const gameLoop = async (newTime) => {
     await render(newTime);
-    window.requestAnimationFrame(thinkLoop);
+
+    setTimeout(() => {
+        window.requestAnimationFrame(thinkLoop);
+    }, 3000);
 };
 
 window.requestAnimationFrame(gameLoop);
