@@ -523,8 +523,9 @@ const getChildren = (state, allies, enemies) => {
     return children;
 };
 
-const ai1 = new ai_random();
-const ai2 = new ai_daniel();
+const whiteAi = new ai_daniel2();
+const blackAi = new ai_daniel();
+let blackTurn = false;
 
 const thinkLoop = async (newTime) => {
     if(isGameOver(currentState)){
@@ -533,8 +534,10 @@ const thinkLoop = async (newTime) => {
     }
 
     if(newTime - thinkTime >= 1000){
-        const child = ai2.think(currentState);
+        currentAi = blackTurn ? blackAi : whiteAi;
+        const child = currentAi.think(currentState);
         thinkTime = newTime;
+        blackTurn = !blackTurn;
 
         if(child){
             currentState = child.state;
