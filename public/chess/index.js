@@ -37,6 +37,10 @@ let currentState = [
     WHITE_TURN,
 ];
 
+let currentSource = null;
+let currentTarget = null;
+let currentSymbol = null;
+
 const print = (state) => {
     let s = state[INDEX_TURN];
     s += "\n";
@@ -58,6 +62,22 @@ const historyPush = (record) => {
 };
 
 const render = async (newTime) => {
+    const drawSymbol = (symbol, x, y) => {
+        g.fillText(symbol, x * s + s / 2, y * s + s / 2);
+    };
+
+    const drawArrow = (sx, sy, tx, ty) => {
+        var headlen = 10; // length of head in pixels
+        var dx = tx - sx;
+        var dy = ty - sy;
+        var angle = Math.atan2(dy, dx);
+        g.moveTo(sx, sy);
+        g.lineTo(tx, ty);
+        g.lineTo(tx - headlen * Math.cos(angle - Math.PI / 6), ty - headlen * Math.sin(angle - Math.PI / 6));
+        g.moveTo(tx, ty);
+        g.lineTo(tx - headlen * Math.cos(angle + Math.PI / 6), ty - headlen * Math.sin(angle + Math.PI / 6));
+    };
+
     const { width, height } = canvas.getBoundingClientRect();
     canvas.width = width;
     canvas.height = height;
@@ -78,14 +98,26 @@ const render = async (newTime) => {
         }
     }
 
+    if(currentSource){
+        const i = getIndex(currentSource);
+        const x = i.alpha - ALPHA_a;
+        const y = DIGIT_1 - i.digit + 7;
+        g.fillStyle = "red";
+        g.fillRect(x * s, y * s, s, s);
+    }
+
+    if(currentTarget){
+        const i = getIndex(currentTarget);
+        const x = i.alpha - ALPHA_a;
+        const y = DIGIT_1 - i.digit + 7;
+        g.fillStyle = "red";
+        g.fillRect(x * s, y * s, s, s);
+    }
+
     g.fillStyle = "#5946B2";
     g.font = "30px Arial";
     g.textBaseline = 'middle';
     g.textAlign = 'center';
-
-    const drawSymbol = (symbol, x, y) => {
-        g.fillText(symbol, x * s + s / 2, y * s + s / 2);
-    };
 
     drawSymbol('8', 8, 0);
     drawSymbol('7', 8, 1);
@@ -110,6 +142,13 @@ const render = async (newTime) => {
             drawSymbol(currentState[y * 8 + x], x, y);
         }
     }
+};
+
+const getXY = (location) => {
+    const i = getIndex(location);
+    const x = i.alpha - ALPHA_a;
+    const y = DIGIT_1 - i.digit + 7;
+    return { x, y };
 };
 
 const getLocation = (alpha, digit) => {
@@ -552,6 +591,10 @@ const thinkLoop = async (newTime) => {
 
     if(child){
         currentState = child.state;
+        currentSource = child.source;
+        currentTarget = child.target;
+        currentSymbol = child.symbol;
+
         historyPush({
             text: child.text,
             symbol: child.symbol,
@@ -569,7 +612,7 @@ const gameLoop = async (newTime) => {
 
     setTimeout(() => {
         window.requestAnimationFrame(thinkLoop);
-    }, 1000);
+    }, 3000);
 };
 
 window.requestAnimationFrame(gameLoop);
