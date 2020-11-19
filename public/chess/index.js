@@ -524,7 +524,9 @@ let blackTurn = false;
 
 const thinkLoop = async (newTime) => {
     if(isGameOver(currentState)){
-        console.log("game over");
+        console.log("Game Over");
+        if(!currentState.includes("♚")) console.log("White Wins");
+        if(!currentState.includes("♔")) console.log("Black Wins");
         return;
     }
 
