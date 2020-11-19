@@ -256,16 +256,24 @@ const addMoveAttackCross = (targets, state, allies, enemies, alpha, digit) => {
     }
 };
 
-const whiteWon = (state) => {
+const whiteVictory = (state) => {
     return !state.includes('♚');
 };
 
-const blackWon = (state) => {
+const blackVictory = (state) => {
     return !state.includes('♔');
 };
 
 const isGameOver = (state) => {
     return !state.includes('♔') || !state.includes('♚');
+};
+
+const isWhiteTurn = (state) => {
+    return state[INDEX_TURN] === WHITE_TURN;
+};
+
+const isBlackTurn = (state) => {
+    return state[INDEX_TURN] === BLACK_TURN;
 };
 
 const getTargets = (state, source) => {
@@ -494,6 +502,9 @@ const getChildren = (state, allies, enemies) => {
 
             return {
                 text: symbol + " " + source + " to " + target + " -> " + "♕",
+                symbol,
+                source,
+                target,
                 state: newState,
             }
         }
@@ -506,12 +517,18 @@ const getChildren = (state, allies, enemies) => {
 
             return {
                 text: symbol + " " + source + " to " + target + " -> " + "♛",
+                symbol,
+                source,
+                target,
                 state: newState,
             }
         }
 
         return {
             text: symbol + " " + source + " to " + target,
+            symbol,
+            source,
+            target,
             state: exeMove(state, source, target),
         };
     });
@@ -520,26 +537,26 @@ const getChildren = (state, allies, enemies) => {
 
 const whiteAi = new ai_daniel2();
 const blackAi = new ai_daniel();
-let blackTurn = false;
 
 const thinkLoop = async (newTime) => {
     if(isGameOver(currentState)){
         console.log("Game Over");
-        if(!currentState.includes("♚")) console.log("White Wins");
-        if(!currentState.includes("♔")) console.log("Black Wins");
+        if(whiteVictory(currentState)) console.log("White Wins");
+        if(blackVictory(currentState)) console.log("Black Wins");
         return;
     }
 
-    currentAi = blackTurn ? blackAi : whiteAi;
     console.log({currentState});
-    const child = currentAi.think(currentState);
+    const child = isWhiteTurn(currentState) ? whiteAi.think(currentState) : blackAi.think(currentState);
     thinkTime = newTime;
-    blackTurn = !blackTurn;
 
     if(child){
         currentState = child.state;
         historyPush({
             text: child.text,
+            symbol: child.symbol,
+            source: child.source,
+            target: child.target,
             state: child.state,
         });
     }
