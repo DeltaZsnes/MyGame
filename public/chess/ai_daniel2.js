@@ -1,6 +1,6 @@
 function ai_daniel2() {
     this.pastPick = {};
-    this.depthMax = 2;
+    this.depthMax = 3;
 
     this.scoreSymbol = (symbol) => {
         switch(symbol){
@@ -67,10 +67,15 @@ function ai_daniel2() {
             return this.scoreState(state, allies, enemies);
         }
 
-        const children = getChildren(state, enemies, allies);
+        const children = getChildren(state, allies, enemies);
 
         for(let child of children){
-            child.score = this.alphaBetaMin(child.state, allies, enemies, bestScore, worstScore, depth);
+            if(isGameOver(child.state)){
+                child.score = Number.NEGATIVE_INFINITY;
+            }
+            else{
+                child.score = this.alphaBetaMin(child.state, allies, enemies, bestScore, worstScore, depth);
+            }
             
             if(child.score >= worstScore){
                 return worstScore;
@@ -86,15 +91,20 @@ function ai_daniel2() {
 
     this.alphaBetaMin = (state, allies, enemies, bestScore, worstScore, depth) => {
         depth = depth + 1;
-
+        
         if(depth >= this.depthMax){
             return this.scoreState(state, allies, enemies);
         }
 
-        const children = getChildren(state, allies, enemies);
+        const children = getChildren(state, enemies, allies);
 
         for(let child of children){
-            child.score = this.alphaBetaMax(child.state, allies, enemies, bestScore, worstScore, depth);
+            if(isGameOver(child.state)){
+                child.score = Number.POSITIVE_INFINITY;
+            }
+            else{
+                child.score = this.alphaBetaMax(child.state, allies, enemies, bestScore, worstScore, depth);
+            }
             
             if(child.score <= bestScore){
                 return bestScore;
@@ -123,7 +133,7 @@ function ai_daniel2() {
                 continue;
             }
 
-            child.score = this.alphaBetaMax(child.state, allies, enemies, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, 0);
+            child.score = this.alphaBetaMin(child.state, allies, enemies, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, 0);
             this.choices.push(child);
         }
 
@@ -144,6 +154,8 @@ function ai_daniel2() {
             this.pastPick[key] = true;
         }
 
+        console.log(this.choices);
+        console.log(best);
         return best;
     };
 

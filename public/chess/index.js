@@ -554,7 +554,7 @@ const gameLoop = async (newTime) => {
 
     setTimeout(() => {
         window.requestAnimationFrame(thinkLoop);
-    }, 3000);
+    }, 1000);
 };
 
 window.requestAnimationFrame(gameLoop);
