@@ -1,5 +1,6 @@
 function ai_daniel2() {
     this.pastPick = {};
+    this.VICTORY_SCORE = 1000000;
 
     this.scoreSymbol = (symbol) => {
         switch(symbol){
@@ -91,7 +92,7 @@ function ai_daniel2() {
         depth = depth - 1;
         
         if(isGameOver(state)){
-            return Number.POSITIVE_INFINITY;
+            return this.VICTORY_SCORE + depth;
         }
         
         if(depth <= 0){
