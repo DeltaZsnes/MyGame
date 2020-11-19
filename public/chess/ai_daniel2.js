@@ -61,6 +61,10 @@ function ai_daniel2() {
     };
 
     this.alphaBetaMax = (state, allies, enemies, bestScore, worstScore, depth) => {
+        if(isGameOver(state)){
+            return Number.NEGATIVE_INFINITY;
+        }
+
         depth = depth + 1;
 
         if(depth >= this.depthMax){
@@ -70,12 +74,7 @@ function ai_daniel2() {
         const children = getChildren(state, allies, enemies);
 
         for(let child of children){
-            if(isGameOver(child.state)){
-                child.score = Number.NEGATIVE_INFINITY;
-            }
-            else{
-                child.score = this.alphaBetaMin(child.state, allies, enemies, bestScore, worstScore, depth);
-            }
+            child.score = this.alphaBetaMin(child.state, allies, enemies, bestScore, worstScore, depth);
             
             if(child.score >= worstScore){
                 return worstScore;
@@ -90,6 +89,10 @@ function ai_daniel2() {
     };
 
     this.alphaBetaMin = (state, allies, enemies, bestScore, worstScore, depth) => {
+        if(isGameOver(state)){
+            return Number.POSITIVE_INFINITY;
+        }
+        
         depth = depth + 1;
         
         if(depth >= this.depthMax){
@@ -99,12 +102,7 @@ function ai_daniel2() {
         const children = getChildren(state, enemies, allies);
 
         for(let child of children){
-            if(isGameOver(child.state)){
-                child.score = Number.POSITIVE_INFINITY;
-            }
-            else{
-                child.score = this.alphaBetaMax(child.state, allies, enemies, bestScore, worstScore, depth);
-            }
+            child.score = this.alphaBetaMax(child.state, allies, enemies, bestScore, worstScore, depth);
             
             if(child.score <= bestScore){
                 return bestScore;
@@ -119,6 +117,7 @@ function ai_daniel2() {
     };
 
     this.think = (state) => {
+        console.log({state});
         this.choices = [];
         const isWhiteTurn = state[INDEX_TURN] === WHITE_TURN;
         const allies = isWhiteTurn ? whitePieces : blackPieces;
@@ -155,7 +154,7 @@ function ai_daniel2() {
         }
 
         console.log(this.choices);
-        console.log(best);
+        console.log({best});
         return best;
     };
 

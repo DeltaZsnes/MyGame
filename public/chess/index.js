@@ -37,6 +37,8 @@ let currentState = [
     WHITE_TURN,
 ];
 
+currentState = [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", "♕", " ", " ", " ", "♗", " ", " ", " ", " ", " ", " ", "♙", " ", " ", " ", " ", "♙", "♚", " ", " ", " ", "♙", " ", "♙", " ", " ", " ", " ", " ", "♙", "♙", " ", "♔", "♙", "♙", "♖", " ", "♗", " ", " ", " ", " ", "♖", "W"];
+
 const print = (state) => {
     let s = state[INDEX_TURN];
     s += "\n";
@@ -274,7 +276,7 @@ const getTargets = (state, source) => {
 
     switch(symbol){
         case '♙':{
-            if(digit == DIGIT_2) addMoveWalkNorth(targets, state, whitePieces, whitePieces, alpha, digit);
+            if(digit == DIGIT_2) addMoveWalkNorth(targets, state, whitePieces, blackPieces, alpha, digit);
             addMoveJump(targets, state, whitePieces, blackPieces, alpha, digit + 1);
             addAttackJump(targets, state, whitePieces, blackPieces, alpha - 1, digit + 1);
             addAttackJump(targets, state, whitePieces, blackPieces, alpha + 1, digit + 1);
@@ -477,11 +479,6 @@ const getChildren = (state, allies, enemies) => {
 
             if(allies[symbol]){
                 let targets = getTargets(state, source);
-
-                if(symbol == '♔' || symbol == '♚'){
-                    targets = targets.filter(target => !enemiesMoves.some(enemiesMove => enemiesMove.target == target));
-                }
-
                 alliesMoves = alliesMoves.concat(targets.map(target => ({ symbol, source, target })));
             }
         }
@@ -534,6 +531,7 @@ const thinkLoop = async (newTime) => {
     }
 
     currentAi = blackTurn ? blackAi : whiteAi;
+    console.log("currentState", currentState);
     const child = currentAi.think(currentState);
     thinkTime = newTime;
     blackTurn = !blackTurn;
