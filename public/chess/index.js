@@ -529,7 +529,7 @@ const thinkLoop = async (newTime) => {
     }
 
     currentAi = blackTurn ? blackAi : whiteAi;
-    console.log("currentState", currentState);
+    console.log({currentState});
     const child = currentAi.think(currentState);
     thinkTime = newTime;
     blackTurn = !blackTurn;

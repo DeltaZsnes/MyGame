@@ -60,7 +60,6 @@ function ai_daniel() {
     };
 
     this.think = (state) => {
-        console.log("input", state);
         this.choices = [];
 
         const isWhiteTurn = state[INDEX_TURN] === WHITE_TURN;
@@ -162,9 +161,6 @@ function ai_daniel() {
 
             return a;
         }, { score: Number.NEGATIVE_INFINITY, state: null });
-
-        console.log(this.choices);
-        console.log(best);
 
         {
             const key = best.state.join(" ");

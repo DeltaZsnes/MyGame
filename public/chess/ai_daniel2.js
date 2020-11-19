@@ -124,7 +124,7 @@ function ai_daniel2() {
         
         for(let child of children){
             const key = child.state.join(" ");
-            
+
             if(this.pastPick[key]){
                 child.score = Number.NEGATIVE_INFINITY;
                 this.choices.push(child);
