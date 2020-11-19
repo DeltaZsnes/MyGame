@@ -1,6 +1,5 @@
 function ai_daniel2() {
     this.pastPick = {};
-    this.depthMax = 3;
 
     this.scoreSymbol = (symbol) => {
         switch(symbol){
@@ -61,13 +60,13 @@ function ai_daniel2() {
     };
 
     this.alphaBetaMax = (state, allies, enemies, bestScore, worstScore, depth) => {
+        depth = depth - 1;
+        
         if(isGameOver(state)){
             return Number.NEGATIVE_INFINITY;
         }
 
-        depth = depth + 1;
-
-        if(depth >= this.depthMax){
+        if(depth <= 0){
             return this.scoreState(state, allies, enemies);
         }
 
@@ -89,13 +88,13 @@ function ai_daniel2() {
     };
 
     this.alphaBetaMin = (state, allies, enemies, bestScore, worstScore, depth) => {
+        depth = depth - 1;
+        
         if(isGameOver(state)){
             return Number.POSITIVE_INFINITY;
         }
         
-        depth = depth + 1;
-        
-        if(depth >= this.depthMax){
+        if(depth <= 0){
             return this.scoreState(state, allies, enemies);
         }
 
@@ -117,7 +116,6 @@ function ai_daniel2() {
     };
 
     this.think = (state) => {
-        console.log({state});
         this.choices = [];
         const isWhiteTurn = state[INDEX_TURN] === WHITE_TURN;
         const allies = isWhiteTurn ? whitePieces : blackPieces;
@@ -126,36 +124,35 @@ function ai_daniel2() {
         
         for(let child of children){
             const key = child.state.join(" ");
+            
             if(this.pastPick[key]){
                 child.score = Number.NEGATIVE_INFINITY;
                 this.choices.push(child);
                 continue;
             }
 
-            child.score = this.alphaBetaMin(child.state, allies, enemies, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, 0);
+            child.score = this.alphaBetaMin(child.state, allies, enemies, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, 3);
             this.choices.push(child);
         }
 
-        const best = this.choices.reduce((a, c) => {
-            if(c.score > a.score){
-                return c;
+        const bestPick = this.choices.reduce((best, candidate) => {
+            if(candidate.score > best.score){
+                return candidate;
             }
             
-            if(c.score == a.score && Math.random() >= 0.5){
-                return c;
+            if(candidate.score == best.score && Math.random() >= 0.5){
+                return candidate;
             }
 
-            return a;
+            return best;
         }, { score: Number.NEGATIVE_INFINITY, state: null });
 
         {
-            const key = best.state.join(" ");
+            const key = bestPick.state.join(" ");
             this.pastPick[key] = true;
         }
 
-        console.log(this.choices);
-        console.log({best});
-        return best;
+        return bestPick;
     };
 
     return this;
