@@ -37,6 +37,7 @@ function ai_daniel() {
         let alliesScore = 0;
         let enemiesScore = 0;
 
+        console.log("foo");
         for(let alpha = ALPHA_a; alpha <= ALPHA_h; alpha++){
             for(let digit = DIGIT_1; digit <= DIGIT_8; digit++){
                 const source = getLocation(alpha, digit);
