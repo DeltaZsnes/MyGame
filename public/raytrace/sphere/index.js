@@ -3,16 +3,15 @@ const gl = canvas.getContext("webgl");
 let vertexShader = null;
 let fragmentShader = null;
 let shaderProgram = null;
+let positionBuffer = null;
+let positionLocation = null;
+let positionData = null;
 
 const vsSource = `
-attribute vec4 aVertexPosition;
-attribute vec4 aVertexColor;
-uniform mat4 uModelViewMatrix;
-uniform mat4 uProjectionMatrix;
-varying lowp vec4 vColor;
+attribute vec4 position;
+
 void main(void) {
-  gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-  vColor = aVertexColor;
+  gl_Position = position;
 }
 `;
 
@@ -20,7 +19,7 @@ const fsSource = `
 varying lowp vec4 vColor;
 
 void main(void) {
-    gl_FragColor = vColor;
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }
 `;
 
@@ -45,6 +44,18 @@ const init = () => {
     gl.attachShader(shaderProgram, vertexShader);
     gl.attachShader(shaderProgram, fragmentShader);
     gl.linkProgram(shaderProgram);
+
+    positionLocation = gl.getAttribLocation(shaderProgram, "position");
+
+    positionData = new Float32Array([
+        -1.0, -1.0, 0.0,
+        +1.0, -1.0, 0.0,
+        -1.0, +1.0, 0.0,
+        +1.0, +1.0, 0.0,
+    ]);
+    positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, positionData, gl.STATIC_DRAW);
 
     // const colors = [
     //     1.0, 1.0, 1.0, 1.0, // white
@@ -94,8 +105,14 @@ const render = () => {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.useProgram(shaderProgram);
+    // gl.enable(gl.CULL_FACE);
+    // gl.cullFace(gl.BACK);
 
+    gl.useProgram(shaderProgram);
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionData.length / 3);
 };
 
 init();
