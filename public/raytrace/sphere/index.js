@@ -13,19 +13,23 @@ let sphereLocation = null;
 
 const vsSource = `
 attribute vec4 position;
+varying vec2 st;
 
 void main(void) {
   gl_Position = position;
+  st = position.st;
 }
 `;
 
 const fsSource = `
 precision mediump float;
 uniform vec4 sphere[4];
+varying vec2 st;
 
 void main(void) {
     vec4 background = vec4(0.1, 0.2, 0.3, 1.0);
-    gl_FragColor = background;
+    vec4 xxx = vec4(st.s, st.t, 0, 1);
+    gl_FragColor = background + xxx;
 }
 `;
 
@@ -117,7 +121,7 @@ const render = () => {
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionData.length / 3);
 
-    // gl.uniform4fv(sphereLocation, sphereData);
+    gl.uniform4fv(sphereLocation, sphereData);
 };
 
 init();
