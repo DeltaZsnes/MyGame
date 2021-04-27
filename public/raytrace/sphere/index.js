@@ -3,9 +3,13 @@ const gl = canvas.getContext("webgl");
 let vertexShader = null;
 let fragmentShader = null;
 let shaderProgram = null;
+
 let positionBuffer = null;
 let positionLocation = null;
 let positionData = null;
+
+let sphereData = null;
+let sphereLocation = null;
 
 const vsSource = `
 attribute vec4 position;
@@ -16,10 +20,12 @@ void main(void) {
 `;
 
 const fsSource = `
-varying lowp vec4 vColor;
+precision mediump float;
+uniform vec4 sphere[4];
 
 void main(void) {
-    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    vec4 background = vec4(0.1, 0.2, 0.3, 1.0);
+    gl_FragColor = background;
 }
 `;
 
@@ -46,6 +52,7 @@ const init = () => {
     gl.linkProgram(shaderProgram);
 
     positionLocation = gl.getAttribLocation(shaderProgram, "position");
+    sphereLocation = gl.getUniformLocation(shaderProgram, "sphere");
 
     positionData = new Float32Array([
         -1.0, -1.0, 0.0,
@@ -57,16 +64,12 @@ const init = () => {
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, positionData, gl.STATIC_DRAW);
 
-    // const colors = [
-    //     1.0, 1.0, 1.0, 1.0, // white
-    //     1.0, 0.0, 0.0, 1.0, // red
-    //     0.0, 1.0, 0.0, 1.0, // green
-    //     0.0, 0.0, 1.0, 1.0, // blue
-    // ];
-
-    // const colorBuffer = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+    sphereData = new Float32Array([
+        +0.0, 0.0, -1.0, 1.0,
+        +1.0, 0.0, -2.0, 1.0,
+        +2.0, 0.0, +1.0, 1.0,
+        +3.0, 0.0, +2.0, 1.0,
+    ]);
 
     // Create a perspective matrix, a special matrix that is
     // used to simulate the distortion of perspective in a camera.
@@ -75,30 +78,30 @@ const init = () => {
     // and we only want to see objects between 0.1 units
     // and 100 units away from the camera.
 
-    const fieldOfView = 45 * Math.PI / 180; // in radians
-    const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-    const zNear = 0.1;
-    const zFar = 100.0;
-    const projectionMatrix = mat4.create();
+    // const fieldOfView = 45 * Math.PI / 180; // in radians
+    // const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+    // const zNear = 0.1;
+    // const zFar = 100.0;
+    // const projectionMatrix = mat4.create();
 
-    // note: glmatrix.js always has the first argument
-    // as the destination to receive the result.
-    mat4.perspective(projectionMatrix,
-        fieldOfView,
-        aspect,
-        zNear,
-        zFar);
+    // // note: glmatrix.js always has the first argument
+    // // as the destination to receive the result.
+    // mat4.perspective(projectionMatrix,
+    //     fieldOfView,
+    //     aspect,
+    //     zNear,
+    //     zFar);
 
-    // Set the drawing position to the "identity" point, which is
-    // the center of the scene.
-    const modelViewMatrix = mat4.create();
+    // // Set the drawing position to the "identity" point, which is
+    // // the center of the scene.
+    // const modelViewMatrix = mat4.create();
 
-    // Now move the drawing position a bit to where we want to
-    // start drawing the square.
+    // // Now move the drawing position a bit to where we want to
+    // // start drawing the square.
 
-    mat4.translate(modelViewMatrix, // destination matrix
-        modelViewMatrix, // matrix to translate
-        [0.0, 0.0, -6.0]); // amount to translate
+    // mat4.translate(modelViewMatrix, // destination matrix
+    //     modelViewMatrix, // matrix to translate
+    //     [0.0, 0.0, -6.0]); // amount to translate
 };
 
 const render = () => {
@@ -109,10 +112,12 @@ const render = () => {
     // gl.cullFace(gl.BACK);
 
     gl.useProgram(shaderProgram);
+    
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionData.length / 3);
+
+    // gl.uniform4fv(sphereLocation, sphereData);
 };
 
 init();
