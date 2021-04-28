@@ -4,22 +4,24 @@ let vertexShader = null;
 let fragmentShader = null;
 let shaderProgram = null;
 
-let positionBuffer = null;
-let positionLocation = null;
-let positionData = null;
+let vertexPositionBuffer = null;
+let vertexPositionLocation = null;
+let vertexPositionData = null;
 
-let sphereData = null;
-let sphereLocation = null;
+let spherePositionList = null;
+let sphereColorList = null;
+let spherePositionLocation = null;
+let sphereColorLocation = null;
 
 let oldTime = null;
 
 const vsSource = `
-attribute vec4 position;
+attribute vec4 vertexPosition;
 varying vec2 st;
 
 void main(void) {
-  gl_Position = position;
-  st = position.st;
+  gl_Position = vertexPosition;
+  st = vertexPosition.st;
 }
 `;
 
@@ -29,7 +31,8 @@ const fsSource = `
 #define rayCountMax 1
 
 precision mediump float;
-uniform vec4 sphere[sphereCount];
+uniform vec4 spherePosition[sphereCount];
+uniform vec4 sphereColor[sphereCount];
 uniform vec3 cameraPosition[1];
 uniform mat3 cameraRotation[1];
 varying vec2 st;
@@ -48,13 +51,13 @@ void main(void) {
 
     for(int sphereIndex = 0; sphereIndex < sphereCount; sphereIndex++)
 	{
-        vec3 spherePosition = sphere[sphereIndex].xyz;
-        float sphereRadius = sphere[sphereIndex].w;
-        vec4 sphereColor = vec4(mod(spherePosition.x, 1.0)+0.5, mod(spherePosition.y, 1.0), mod(spherePosition.z, 1.0), 1.0);
+        vec3 position = spherePosition[sphereIndex].xyz;
+        float radius = spherePosition[sphereIndex].w;
+        vec4 color = sphereColor[sphereIndex];
         float a = dot(rayDirection, rayDirection);
-        vec3 f = rayPosition - spherePosition;
+        vec3 f = rayPosition - position;
 		float b = dot(2.0 * rayDirection, f);
-		float c = dot(f, f) - (sphereRadius * sphereRadius);
+		float c = dot(f, f) - (radius * radius);
 		float d = (b * b) - 4.0 * a * c;
 		float e = sqrt(d);
 		float t0 = (-b + e) / (2.0 * a);
@@ -63,7 +66,7 @@ void main(void) {
         // to avoid branching multiply by the max
         // thus we technically always add all sphere colors
         float m = max(d, 0.0);
-        rayColor = rayColor + sphereColor * m;
+        rayColor = rayColor + color * m;
     }
 
     gl_FragColor = rayColor;
@@ -92,26 +95,34 @@ const init = () => {
     gl.attachShader(shaderProgram, fragmentShader);
     gl.linkProgram(shaderProgram);
 
-    positionLocation = gl.getAttribLocation(shaderProgram, "position");
-    sphereLocation = gl.getUniformLocation(shaderProgram, "sphere");
+    vertexPositionLocation = gl.getAttribLocation(shaderProgram, "vertexPosition");
+    spherePositionLocation = gl.getUniformLocation(shaderProgram, "spherePosition");
+    sphereColorLocation = gl.getUniformLocation(shaderProgram, "sphereColor");
     cameraPositionLocation = gl.getUniformLocation(shaderProgram, "cameraPosition");
     cameraRotationLocation = gl.getUniformLocation(shaderProgram, "cameraRotation");
 
-    positionData = new Float32Array([
+    vertexPositionData = new Float32Array([
         -1.0, -1.0, 0.0,
         +1.0, -1.0, 0.0,
         -1.0, +1.0, 0.0,
         +1.0, +1.0, 0.0,
     ]);
-    positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, positionData, gl.STATIC_DRAW);
+    vertexPositionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, vertexPositionData, gl.STATIC_DRAW);
 
-    sphereData = new Float32Array([
+    spherePositionList = new Float32Array([
         +0.0, 0.0, -1.0, 1.0,
         +1.0, 0.0, -2.0, 1.0,
         +2.0, 0.0, +1.0, 1.0,
         +3.0, 0.0, +2.0, 1.0,
+    ]);
+
+    sphereColorList = new Float32Array([
+        1.0, 0.0, 0.0, 1.0,
+        0.0, 1.0, 0.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        1.0, 1.0, 1.0, 1.0,
     ]);
 
     cameraPosition = vec3.fromValues(0, 0, -20);
@@ -152,11 +163,12 @@ const render = () => {
 
     gl.useProgram(shaderProgram);
 
-    gl.enableVertexAttribArray(positionLocation);
-    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionData.length / 3);
+    gl.enableVertexAttribArray(vertexPositionLocation);
+    gl.vertexAttribPointer(vertexPositionLocation, 3, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexPositionData.length / 3);
 
-    gl.uniform4fv(sphereLocation, sphereData);
+    gl.uniform4fv(spherePositionLocation, spherePositionList);
+    gl.uniform4fv(sphereColorLocation, sphereColorList);
     gl.uniform3fv(cameraPositionLocation, cameraPosition);
     gl.uniformMatrix3fv(cameraRotationLocation, false, cameraRotation);
 
