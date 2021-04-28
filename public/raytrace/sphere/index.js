@@ -50,7 +50,7 @@ void main(void) {
 	{
         vec3 spherePosition = sphere[sphereIndex].xyz;
         float sphereRadius = sphere[sphereIndex].w;
-        vec3 sphereColor = vec3(mod(spherePosition.x, 1.0), mod(spherePosition.y, 1.0), mod(spherePosition.z, 1.0), 1.0);
+        vec4 sphereColor = vec4(mod(spherePosition.x, 1.0)+0.5, mod(spherePosition.y, 1.0), mod(spherePosition.z, 1.0), 1.0);
         float a = dot(rayDirection, rayDirection);
         vec3 f = rayPosition - spherePosition;
 		float b = dot(2.0 * rayDirection, f);
@@ -63,7 +63,7 @@ void main(void) {
         // to avoid branching multiply by the max
         // thus we technically always add all sphere colors
         float m = max(d, 0.0);
-        rayColor = rayColor + vec4(1, 0, 0, 1) * m;
+        rayColor = rayColor + sphereColor * m;
     }
 
     gl_FragColor = rayColor;
@@ -114,7 +114,7 @@ const init = () => {
         +3.0, 0.0, +2.0, 1.0,
     ]);
 
-    cameraPosition = vec3.create();
+    cameraPosition = vec3.fromValues(0, 0, -20);
     cameraRotation = mat3.create();
 
     document.addEventListener('keypress', (e) => {
