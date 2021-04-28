@@ -14,6 +14,10 @@ let spherePositionLocation = null;
 let sphereColorLocation = null;
 
 let oldTime = null;
+let mouseDown = false;
+let mousePositionOld = null;
+
+let keyMap = {};
 
 const vsSource = `
 attribute vec4 vertexPosition;
@@ -127,30 +131,74 @@ const init = () => {
 
     cameraPosition = vec3.fromValues(0, 0, -20);
     cameraRotation = mat3.create();
-
     document.addEventListener('keypress', (e) => {
-        switch (e.key) {
-            case "w":
-                vec3.add(cameraPosition, cameraPosition, vec3.fromValues(0, 0, +1));
-                break;
-            case "s":
-                vec3.add(cameraPosition, cameraPosition, vec3.fromValues(0, 0, -1));
-                break;
-            case "a":
-                vec3.add(cameraPosition, cameraPosition, vec3.fromValues(-1, 0, 0));
-                break;
-            case "d":
-                vec3.add(cameraPosition, cameraPosition, vec3.fromValues(+1, 0, 0));
-                break;
-            case "q":
-                break;
-            case "r":
-                break;
-        }
+        keyMap[e.key] = true;
     });
+    document.addEventListener('keyup', (e) => {
+        keyMap[e.key] = false;
+    });
+        
+    document.addEventListener('mousedown', (e) => {
+        mouseDown = true;
+        mousePositionOld = vec2.fromValues(e.x, e.y);
+    });
+    document.addEventListener('mouseup', (e) => {
+        mouseDown = false;
+    });
+    document.addEventListener('mousemove', (e) => {
+        if (mouseDown) {
+            let mousePositionNew = vec2.fromValues(e.x, e.y);
+            let mouseDelta = vec2.create();
+            vec2.sub(mouseDelta, mousePositionOld, mousePositionNew);
+            let mouseVector = vec3.fromValues(-mouseDelta[0], mouseDelta[1], 1000.0);
+            vec3.normalize(mouseVector, mouseVector);
+
+            let globalForward = vec3.fromValues(0, 0, 1);
+            let localForward = vec3.create();
+            vec3.transformMat3(localForward, globalForward, cameraRotation);
+
+            let q = quat.create();
+            quat.rotationTo(q, globalForward, mouseVector);
+
+            let r = mat3.create();
+            mat3.fromQuat(r, q);
+            mat3.mul(cameraRotation, cameraRotation, r);
+
+            mousePositionOld = mousePositionNew;
+        };
+    })
+
 };
 
+const checkKeys = () => {
+    if(keyMap["w"]){
+        let v = vec3.fromValues(0, 0, +1);
+        vec3.transformMat3(v, v, cameraRotation);
+        vec3.add(cameraPosition, cameraPosition, v);
+    }
+
+    if(keyMap["s"]){
+        let v = vec3.fromValues(0, 0, -1);
+        vec3.transformMat3(v, v, cameraRotation);
+        vec3.add(cameraPosition, cameraPosition, v);
+    }
+
+    if(keyMap["a"]){
+        let v = vec3.fromValues(-1, 0, 0);
+        vec3.transformMat3(v, v, cameraRotation);
+        vec3.add(cameraPosition, cameraPosition, v);
+    }
+
+    if(keyMap["d"]){
+        let v = vec3.fromValues(+1, 0, 0);
+        vec3.transformMat3(v, v, cameraRotation);
+        vec3.add(cameraPosition, cameraPosition, v);
+    }
+}
+
 const render = () => {
+    checkKeys();
+
     let newTime = performance.now();
     // console.log(1000.0/(newTime - oldTime));
     oldTime = newTime;
