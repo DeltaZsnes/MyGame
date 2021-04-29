@@ -70,7 +70,8 @@ void main(void) {
         // to avoid branching multiply by the max
         // thus we technically always add all sphere colors
         float m = max(d, 0.0);
-        rayColor = rayColor + color * m;
+
+        rayColor = rayColor + color * clamp(m, 0.0, 1.0);
     }
 
     gl_FragColor = rayColor;
@@ -133,6 +134,11 @@ const init = () => {
 
     cameraPosition = vec3.fromValues(0, 0, -20);
     cameraRotation = mat3.create();
+    
+    attachKeys();
+};
+
+const attachKeys = () => {
     document.addEventListener('keypress', (e) => {
         keyMap[e.key] = true;
     });
@@ -168,8 +174,7 @@ const init = () => {
 
             mousePositionOld = mousePositionNew;
         };
-    })
-
+    });
 };
 
 const checkKeys = () => {
