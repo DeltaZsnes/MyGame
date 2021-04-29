@@ -6,7 +6,7 @@ let shaderProgram = null;
 
 let vertexPositionBuffer = null;
 let vertexPositionLocation = null;
-let vertexPositionData = null;
+let vertexPositionList = null;
 
 let spherePositionList = null;
 let sphereColorList = null;
@@ -30,7 +30,7 @@ void main(void) {
 `;
 
 const fsSource = `
-#define sphereCount 4
+#define sphereCount 5
 #define focalLength 4
 #define rayCountMax 1
 
@@ -105,7 +105,7 @@ const init = () => {
     cameraPositionLocation = gl.getUniformLocation(shaderProgram, "cameraPosition");
     cameraRotationLocation = gl.getUniformLocation(shaderProgram, "cameraRotation");
 
-    vertexPositionData = new Float32Array([
+    vertexPositionList = new Float32Array([
         -1.0, -1.0, 0.0,
         +1.0, -1.0, 0.0,
         -1.0, +1.0, 0.0,
@@ -113,20 +113,22 @@ const init = () => {
     ]);
     vertexPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, vertexPositionData, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, vertexPositionList, gl.STATIC_DRAW);
 
     spherePositionList = new Float32Array([
-        +0.0, 0.0, -1.0, 1.0,
-        +1.0, 0.0, -2.0, 1.0,
-        +2.0, 0.0, +1.0, 1.0,
-        +3.0, 0.0, +2.0, 1.0,
+        +0.0, +20.0, +0.0, +1.0,
+        +0.0, 0.0, +0.0, 1.0,
+        +1.0, 0.0, +1.0, 1.0,
+        +2.0, 0.0, +2.0, 1.0,
+        +0.0, -105.0, +0.0, 100.0,
     ]);
 
     sphereColorList = new Float32Array([
+        1.0, 1.0, 1.0, 1.0,
         1.0, 0.0, 0.0, 1.0,
         0.0, 1.0, 0.0, 1.0,
         0.0, 0.0, 1.0, 1.0,
-        1.0, 1.0, 1.0, 1.0,
+        0.1, 0.1, 0.1, 1.0,
     ]);
 
     cameraPosition = vec3.fromValues(0, 0, -20);
@@ -213,7 +215,7 @@ const render = () => {
 
     gl.enableVertexAttribArray(vertexPositionLocation);
     gl.vertexAttribPointer(vertexPositionLocation, 3, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexPositionData.length / 3);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexPositionList.length / 3);
 
     gl.uniform4fv(spherePositionLocation, spherePositionList);
     gl.uniform4fv(sphereColorLocation, sphereColorList);
