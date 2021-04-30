@@ -87,7 +87,7 @@ uniform sampler2D waterTexture;
 void main(void) {
     vec4 background = texture2D(backgroundTexture, st);
     vec4 water = texture2D(waterTexture, st);
-    gl_FragColor = background;
+    gl_FragColor = background + water;
 }
 `;
 
@@ -98,56 +98,40 @@ void main(void) {
 // Initialize a texture and load an image.
 // When the image finished loading copy it into the texture.
 //
-function loadTexture(url) {
-    const texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
+const loadTexture = (imageUrl) => {
+    return new Promise((resolve, _) => {
+        const image = new Image();
 
-    // Because images have to be downloaded over the internet
-    // they might take a moment until they are ready.
-    // Until then put a single pixel in the texture so we can
-    // use it immediately. When the image has finished downloading
-    // we'll update the texture with the contents of the image.
-    const level = 0;
-    const internalFormat = gl.RGBA;
-    const width = 1;
-    const height = 1;
-    const border = 0;
-    const srcFormat = gl.RGBA;
-    const srcType = gl.UNSIGNED_BYTE;
-    const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
-    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-        width, height, border, srcFormat, srcType,
-        pixel);
+        image.onload = function () {
+            const texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
 
-    const image = new Image();
-    image.onload = function () {
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-            srcFormat, srcType, image);
+            const level = 0;
+            const internalFormat = gl.RGBA;
+            const width = 1;
+            const height = 1;
+            const border = 0;
+            const srcFormat = gl.RGBA;
+            const srcType = gl.UNSIGNED_BYTE;
 
-        gl.generateMipmap(gl.TEXTURE_2D);
+            gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                width, height, border, srcFormat, srcType,
+                null);
 
-        //   // WebGL1 has different requirements for power of 2 images
-        //   // vs non power of 2 images so check if the image is a
-        //   // power of 2 in both dimensions.
-        //   if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
-        //      // Yes, it's a power of 2. Generate mips.
-        //      gl.generateMipmap(gl.TEXTURE_2D);
-        //   } else {
-        //      // No, it's not a power of 2. Turn off mips and set
-        //      // wrapping to clamp to edge
-        //      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        //      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        //      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        //   }
-    };
-    image.src = url;
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                srcFormat, srcType, image);
+            gl.generateMipmap(gl.TEXTURE_2D);
 
-    return texture;
+            resolve(texture);
+        };
+        
+        image.src = imageUrl;
+    });
 }
 
-const init = () => {
-    backgroundTexture = loadTexture("background.jpg");
+const init = async () => {
+    backgroundTexture = await loadTexture("background.jpg");
 
     touchProgram = makeProgramTouch();
     waterProgram = makeProgramWater();
@@ -204,7 +188,7 @@ const render = () => {
 
     {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        
+
         gl.bindTexture(gl.TEXTURE_2D, waterTexture);
         gl.activeTexture(gl.TEXTURE0);
 
@@ -226,5 +210,9 @@ const render = () => {
     window.requestAnimationFrame(render);
 };
 
-init();
-window.requestAnimationFrame(render);
+const runAsync = async () => {
+    await init();
+    window.requestAnimationFrame(render);
+};
+
+runAsync();
