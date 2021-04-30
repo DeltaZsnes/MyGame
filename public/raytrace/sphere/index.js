@@ -35,47 +35,56 @@ const fsSource = `
 #define rayCountMax 1
 
 precision mediump float;
-uniform vec4 spherePosition[sphereCount];
-uniform vec4 sphereColor[sphereCount];
+uniform vec4 spherePositionList[sphereCount];
+uniform vec4 sphereColorList[sphereCount];
 uniform vec3 cameraPosition[1];
 uniform mat3 cameraRotation[1];
 varying vec2 st;
 
 void main(void) {
-    vec3 sunPosition = spherePosition[0].xyz;
-    float sunIntensity = spherePosition[0].w;
+    vec3 sunPosition = spherePositionList[0].xyz;
+    float sunIntensity = spherePositionList[0].w;
 
     vec3 rayPosition;
 	vec3 rayDirection;
 	int rayCount = 0;
 
-    vec4 background = vec4(0.1, 0.2, 0.3, 1.0);
-    vec4 rayColor = background;
+    vec4 sceneBackground = vec4(0.1, 0.2, 0.3, 1.0);
+    vec4 rayColor = sceneBackground;
 
     rayPosition = cameraPosition[0];
 	rayDirection = cameraRotation[0] * vec3(st, focalLength);
     rayCount++;
 
+    float minT = +1.0/0.0;
+
     for(int sphereIndex = 0; sphereIndex < sphereCount; sphereIndex++)
 	{
-        vec3 position = spherePosition[sphereIndex].xyz;
-        float radius = spherePosition[sphereIndex].w;
-        vec4 color = sphereColor[sphereIndex];
+        vec3 spherePosition = spherePositionList[sphereIndex].xyz;
+        float sphereRadius = spherePositionList[sphereIndex].w;
+        vec4 sphereColor = sphereColorList[sphereIndex];
+
+        // sphere intersection formula
         float a = dot(rayDirection, rayDirection);
-        vec3 f = rayPosition - position;
+        vec3 f = rayPosition - spherePosition;
 		float b = dot(2.0 * rayDirection, f);
-		float c = dot(f, f) - (radius * radius);
+		float c = dot(f, f) - (sphereRadius * sphereRadius);
 		float d = (b * b) - 4.0 * a * c;
 		float e = sqrt(d);
 		float t0 = (-b + e) / (2.0 * a);
 		float t1 = (-b - e) / (2.0 * a);
-
         float t = min(t0, t1);
+
+        // sphereColor formula
         vec3 hitPosition = rayPosition + rayDirection * t;
         float distanceSunHit = distance(sunPosition, hitPosition);
+        vec3 sunDirection = hitPosition - sunPosition;
+        float fff = dot(sunDirection, rayDirection);
+        vec3 surfaceNormal = normalize(hitPosition - spherePosition);
 
-        if(t >= 0.0){
-            rayColor = rayColor + color;
+        if(t >= 0.0 && t <= minT){
+            minT = t;
+            rayColor = sphereColor;
         }
     }
 
@@ -106,8 +115,8 @@ const init = () => {
     gl.linkProgram(shaderProgram);
 
     vertexPositionLocation = gl.getAttribLocation(shaderProgram, "vertexPosition");
-    spherePositionLocation = gl.getUniformLocation(shaderProgram, "spherePosition");
-    sphereColorLocation = gl.getUniformLocation(shaderProgram, "sphereColor");
+    spherePositionLocation = gl.getUniformLocation(shaderProgram, "spherePositionList");
+    sphereColorLocation = gl.getUniformLocation(shaderProgram, "sphereColorList");
     cameraPositionLocation = gl.getUniformLocation(shaderProgram, "cameraPosition");
     cameraRotationLocation = gl.getUniformLocation(shaderProgram, "cameraRotation");
 
@@ -134,7 +143,7 @@ const init = () => {
         1.0, 0.0, 0.0, 1.0,
         0.0, 1.0, 0.0, 1.0,
         0.0, 0.0, 1.0, 1.0,
-        0.1, 0.1, 0.1, 1.0,
+        0.5, 0.5, 0.5, 1.0,
     ]);
 
     cameraPosition = vec3.fromValues(0, 0, -20);
