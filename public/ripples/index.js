@@ -1,5 +1,6 @@
 const canvas = document.querySelector("#glCanvas");
 const gl = canvas.getContext("webgl");
+
 let touchProgram = null;
 let waterProgram = null;
 let vertexPositionBuffer = null;
@@ -84,7 +85,9 @@ uniform sampler2D backgroundTexture;
 uniform sampler2D waterTexture;
 
 void main(void) {
-    gl_FragColor = texture2D(backgroundTexture, st);
+    vec4 background = texture2D(backgroundTexture, st);
+    vec4 water = texture2D(waterTexture, st);
+    gl_FragColor = background;
 }
 `;
 
@@ -185,6 +188,7 @@ const render = () => {
 
     {
         gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+
         gl.bindTexture(gl.TEXTURE_2D, waterTexture);
         gl.activeTexture(gl.TEXTURE0);
 
@@ -200,18 +204,19 @@ const render = () => {
 
     {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.bindTexture(gl.TEXTURE_2D, backgroundTexture);
+        
+        gl.bindTexture(gl.TEXTURE_2D, waterTexture);
         gl.activeTexture(gl.TEXTURE0);
 
-        // gl.bindTexture(gl.TEXTURE_2D, waterTexture);
-        // gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, backgroundTexture);
+        gl.activeTexture(gl.TEXTURE1);
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         gl.useProgram(waterProgram);
-        gl.uniform1i(backgroundTextureLocation, 0);
-        // gl.uniform1i(waterTextureLocation, 1);
+        gl.uniform1i(waterTextureLocation, 0);
+        gl.uniform1i(backgroundTextureLocation, 1);
 
         gl.enableVertexAttribArray(vertexPositionLocation);
         gl.vertexAttribPointer(vertexPositionLocation, 3, gl.FLOAT, false, 0, 0);
