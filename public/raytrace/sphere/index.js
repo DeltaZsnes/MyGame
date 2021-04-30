@@ -42,6 +42,9 @@ uniform mat3 cameraRotation[1];
 varying vec2 st;
 
 void main(void) {
+    vec3 sunPosition = spherePosition[0].xyz;
+    float sunIntensity = spherePosition[0].w;
+
     vec3 rayPosition;
 	vec3 rayDirection;
 	int rayCount = 0;
@@ -67,11 +70,13 @@ void main(void) {
 		float t0 = (-b + e) / (2.0 * a);
 		float t1 = (-b - e) / (2.0 * a);
 
-        // to avoid branching multiply by the max
-        // thus we technically always add all sphere colors
-        float m = max(d, 0.0);
+        float t = min(t0, t1);
+        vec3 hitPosition = rayPosition + rayDirection * t;
+        float distanceSunHit = distance(sunPosition, hitPosition);
 
-        rayColor = rayColor + color * clamp(m, 0.0, 1.0);
+        if(t >= 0.0){
+            rayColor = rayColor + color;
+        }
     }
 
     gl_FragColor = rayColor;
@@ -121,7 +126,7 @@ const init = () => {
         +0.0, 0.0, +0.0, 1.0,
         +1.0, 0.0, +1.0, 1.0,
         +2.0, 0.0, +2.0, 1.0,
-        +0.0, -105.0, +0.0, 100.0,
+        +0.0, -1005.0, +0.0, 1000.0,
     ]);
 
     sphereColorList = new Float32Array([
