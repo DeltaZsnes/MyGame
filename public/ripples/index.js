@@ -57,8 +57,13 @@ void main(void) {
     const fsSource = `
 precision mediump float;
 varying vec2 st;
+uniform sampler2D waterTexture;
 
 void main(void) {
+    vec4 water = texture2D(waterTexture, st);
+
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+
     if(distance(st, vec2(0,0)) <= 0.1){
         gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
     }
@@ -89,6 +94,7 @@ void main(void) {
     vec4 background = texture2D(backgroundTexture, st);
     vec4 water = texture2D(waterTexture, st);
     gl_FragColor = mix(background, water, 0.5);
+    // gl_FragColor = water;
 }
 `;
 
@@ -118,12 +124,16 @@ const loadTexture = (imageUrl) => {
 const init = async () => {
     backgroundTexture = await loadTexture("background.jpg");
 
-    touchProgram = makeProgramTouch();
-    waterProgram = makeProgramWater();
+    touchProgram = {};
+    touchProgram.program = makeProgramTouch();
+    touchProgram.vertexPositionLocation = gl.getAttribLocation(touchProgram.program, "vertexPosition");
+    touchProgram.waterTextureLocation = gl.getUniformLocation(touchProgram.program, "waterTexture");
 
-    vertexPositionLocation = gl.getAttribLocation(touchProgram, "vertexPosition");
-    waterTextureLocation = gl.getUniformLocation(waterProgram, "waterTexture");
-    backgroundTextureLocation = gl.getUniformLocation(waterProgram, "backgroundTexture");
+    waterProgram = {};
+    waterProgram.program = makeProgramWater();
+    waterProgram.vertexPositionLocation = gl.getAttribLocation(waterProgram.program, "vertexPosition");
+    waterProgram.waterTextureLocation = gl.getUniformLocation(waterProgram.program, "waterTexture");
+    waterProgram.backgroundTextureLocation = gl.getUniformLocation(waterProgram.program, "backgroundTexture");
 
     vertexPositionList = new Float32Array([
         -1.0, -1.0, 0.0,
@@ -166,36 +176,36 @@ const render = () => {
 
     {
         gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-        gl.useProgram(touchProgram);
+        gl.useProgram(touchProgram.program);
 
-        gl.bindTexture(gl.TEXTURE_2D, waterTexture);
+        gl.bindTexture(gl.TEXTURE_2D, touchProgram.waterTexture);
         gl.activeTexture(gl.TEXTURE0);
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        gl.enableVertexAttribArray(vertexPositionLocation);
-        gl.vertexAttribPointer(vertexPositionLocation, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(touchProgram.vertexPositionLocation);
+        gl.vertexAttribPointer(touchProgram.vertexPositionLocation, 3, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexPositionList.length / 3);
     }
 
     {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.useProgram(waterProgram);
+        gl.useProgram(waterProgram.program);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, backgroundTexture);
-        gl.uniform1i(backgroundTextureLocation, 0);
+        gl.uniform1i(waterProgram.backgroundTextureLocation, 0);
 
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, waterTexture);
-        gl.uniform1i(waterTextureLocation, 1);
+        gl.uniform1i(waterProgram.waterTextureLocation, 1);
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        gl.enableVertexAttribArray(vertexPositionLocation);
-        gl.vertexAttribPointer(vertexPositionLocation, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(waterProgram.vertexPositionLocation);
+        gl.vertexAttribPointer(waterProgram.vertexPositionLocation, 3, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexPositionList.length / 3);
     }
 
