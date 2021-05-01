@@ -11,7 +11,8 @@ let backgroundTextureLocation = null;
 let waterTextureLocation = null;
 
 let oldTime = null;
-let waterTexture = null;
+let waterTextureFront = null;
+let waterTextureBack = null;
 let backgroundTexture = null;
 let frameBuffer = null;
 
@@ -50,7 +51,7 @@ varying vec2 st;
 
 void main(void) {
   gl_Position = vertexPosition;
-  st = vertexPosition.st;
+  st = vertexPosition.st * 0.5 + vec2(0.5, 0.5);
 }
 `;
 
@@ -60,11 +61,15 @@ varying vec2 st;
 uniform sampler2D waterTexture;
 
 void main(void) {
-    vec4 water = texture2D(waterTexture, st);
+    float s = 1.0 / 512.0;
+    vec4 water = vec4(0, 0, 0, 0);
+    water += texture2D(waterTexture, st + vec2(+s, +0));
+    water += texture2D(waterTexture, st + vec2(-s, +0));
+    water += texture2D(waterTexture, st + vec2(+0, +s));
+    water += texture2D(waterTexture, st + vec2(+0, -s));
+    gl_FragColor = water;
 
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-
-    if(distance(st, vec2(0,0)) <= 0.1){
+    if(distance(st, vec2(0.5,0.5)) <= 0.1){
         gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
     }
 }
@@ -87,14 +92,14 @@ void main(void) {
     const fsSource = `
 precision mediump float;
 varying vec2 st;
-uniform sampler2D backgroundTexture;
 uniform sampler2D waterTexture;
+uniform sampler2D backgroundTexture;
 
 void main(void) {
-    vec4 background = texture2D(backgroundTexture, st);
     vec4 water = texture2D(waterTexture, st);
+    vec4 background = texture2D(backgroundTexture, st);
     gl_FragColor = mix(background, water, 0.5);
-    // gl_FragColor = water;
+    gl_FragColor = water;
 }
 `;
 
@@ -121,6 +126,17 @@ const loadTexture = (imageUrl) => {
     });
 }
 
+const makeDynamicTexture = () => {
+    const dynamicTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, dynamicTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 512, 512, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    return dynamicTexture;
+};
+
 const init = async () => {
     backgroundTexture = await loadTexture("background.jpg");
 
@@ -145,20 +161,9 @@ const init = async () => {
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, vertexPositionList, gl.STATIC_DRAW);
 
-    waterTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, waterTexture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 512, 512, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-
-    // gl.generateMipmap(gl.TEXTURE_2D);
-
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
+    waterTextureBack = makeDynamicTexture();
+    waterTextureFront = makeDynamicTexture();
     frameBuffer = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, waterTexture, 0);
 
     document.addEventListener('mousedown', (e) => {
         console.log(e);
@@ -176,10 +181,12 @@ const render = () => {
 
     {
         gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, waterTextureBack, 0);
         gl.useProgram(touchProgram.program);
 
-        gl.bindTexture(gl.TEXTURE_2D, touchProgram.waterTexture);
         gl.activeTexture(gl.TEXTURE0);
+        gl.uniform1i(touchProgram.waterTextureLocation, 0);
+        gl.bindTexture(gl.TEXTURE_2D, waterTextureFront);
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
@@ -189,17 +196,21 @@ const render = () => {
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexPositionList.length / 3);
     }
 
+    let waterTextureTemp = waterTextureBack;
+    waterTextureBack = waterTextureFront;
+    waterTextureFront = waterTextureTemp;
+
     {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.useProgram(waterProgram.program);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, backgroundTexture);
-        gl.uniform1i(waterProgram.backgroundTextureLocation, 0);
+        gl.uniform1i(waterProgram.waterTextureLocation, 0);
+        gl.bindTexture(gl.TEXTURE_2D, waterTextureFront);
 
         gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, waterTexture);
-        gl.uniform1i(waterProgram.waterTextureLocation, 1);
+        gl.uniform1i(waterProgram.backgroundTextureLocation, 1);
+        gl.bindTexture(gl.TEXTURE_2D, backgroundTexture);
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
