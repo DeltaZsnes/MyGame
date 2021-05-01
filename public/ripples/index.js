@@ -183,17 +183,17 @@ const render = () => {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.useProgram(waterProgram);
 
-        gl.bindTexture(gl.TEXTURE_2D, waterTexture);
         gl.activeTexture(gl.TEXTURE0);
-
         gl.bindTexture(gl.TEXTURE_2D, backgroundTexture);
+        
         gl.activeTexture(gl.TEXTURE1);
-
+        gl.bindTexture(gl.TEXTURE_2D, waterTexture);
+        
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        gl.uniform1i(waterTextureLocation, 0);
-        gl.uniform1i(backgroundTextureLocation, 1);
+        gl.uniform1i(backgroundTextureLocation, 0);
+        gl.uniform1i(waterTextureLocation, 1);
 
         gl.enableVertexAttribArray(vertexPositionLocation);
         gl.vertexAttribPointer(vertexPositionLocation, 3, gl.FLOAT, false, 0, 0);
