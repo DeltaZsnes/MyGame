@@ -207,6 +207,19 @@ const init = async () => {
         mouse.x = e.x;
         mouse.y = e.y;
     });
+
+    document.addEventListener('touchstart', (e) => {
+        mouse.touch = true;
+        mouse.x = e.x;
+        mouse.y = e.y;
+    });
+    document.addEventListener('touchend', (e) => {
+        mouse.touch = false;
+    });
+    document.addEventListener('touchmove', (e) => {
+        mouse.x = e.x;
+        mouse.y = e.y;
+    });
 };
 
 const render = () => {
