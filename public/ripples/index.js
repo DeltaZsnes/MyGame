@@ -65,23 +65,25 @@ uniform vec2 mousePosition;
 
 void main(void) {
     float s = 1.0 / 512.0;
-    vec4 water = vec4(0, 0, 0, 0);
-    water += texture2D(waterTexture, st + vec2(+s, +0));
-    water += texture2D(waterTexture, st + vec2(-s, +0));
-    water += texture2D(waterTexture, st + vec2(+0, +s));
-    water += texture2D(waterTexture, st + vec2(+0, -s));
-    // water += texture2D(waterTexture, st + vec2(-s, -s));
-    // water += texture2D(waterTexture, st + vec2(+s, +s));
-    // water += texture2D(waterTexture, st + vec2(-s, +s));
-    // water += texture2D(waterTexture, st + vec2(+s, -s));
-    water = water / 4.0;
-    gl_FragColor = water;
+    vec4 outgoing = texture2D(waterTexture, st);
+    vec4 incoming = vec4(0, 0, 0, 0);
+    incoming += texture2D(waterTexture, st + vec2(+s, +0));
+    incoming += texture2D(waterTexture, st + vec2(-s, +0));
+    incoming += texture2D(waterTexture, st + vec2(+0, +s));
+    incoming += texture2D(waterTexture, st + vec2(+0, -s));
+    vec4 c = outgoing;
+    c = c * 0.99;
 
     if(distance(st, mousePosition) <= 0.1){
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+        c = vec4(1.0, 0.0, 0.0, 1.0);
     }
 
-    gl_FragColor.a = 1.0;
+    gl_FragColor = vec4(
+        clamp(c.r, -10.0, 10.0),
+        clamp(c.g, 0.0, 1.0),
+        clamp(c.b, 0.0, 1.0),
+        1.0
+    );
 }
 `;
 
@@ -138,13 +140,19 @@ const loadTexture = (imageUrl) => {
 
 const makeDynamicTexture = () => {
     const size = 512;
-    const data = new Uint8Array(new Array(size * size * 4).fill(0));
-    for(let i = 3; i<data.length; i+=4){
-        data[i] = 255;
+    const data = new Float32Array(new Array(size * size * 4));
+    
+    for(let i = 0; i<data.length; i += 4){
+        data[i + 0] = 0.0;
+        data[i + 1] = 0.0;
+        data[i + 2] = 0.0;
+        data[i + 3] = 1.0;
     }
+
+    gl.getExtension('OES_texture_float'); // enables floating point textures
     const dynamicTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, dynamicTexture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.FLOAT, data);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
