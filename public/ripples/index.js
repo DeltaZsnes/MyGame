@@ -15,6 +15,9 @@ let waterTexture = null;
 let backgroundTexture = null;
 let frameBuffer = null;
 
+let framebufferX = null;
+let fbTextureX = null;
+
 const makeProgram = (vsSource, fsSource) => {
     const vertexShader = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(vertexShader, vsSource);
@@ -59,8 +62,6 @@ void main(void) {
     if(distance(st, vec2(0,0)) <= 0.1){
         gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
     }
-
-    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }
 `;
 
@@ -105,24 +106,8 @@ const loadTexture = (imageUrl) => {
         image.onload = function () {
             const texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture);
-
-            const level = 0;
-            const internalFormat = gl.RGBA;
-            const width = 1;
-            const height = 1;
-            const border = 0;
-            const srcFormat = gl.RGBA;
-            const srcType = gl.UNSIGNED_BYTE;
-
-            gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-                width, height, border, srcFormat, srcType,
-                null);
-
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-                srcFormat, srcType, image);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
             gl.generateMipmap(gl.TEXTURE_2D);
-
             resolve(texture);
         };
 
@@ -151,16 +136,19 @@ const init = async () => {
     gl.bufferData(gl.ARRAY_BUFFER, vertexPositionList, gl.STATIC_DRAW);
 
     waterTexture = gl.createTexture();
-    let level = 0;
     gl.bindTexture(gl.TEXTURE_2D, waterTexture);
-    gl.texImage2D(gl.TEXTURE_2D, level, gl.RGBA, 512, 512, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 512, 512, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
-    gl.generateMipmap(gl.TEXTURE_2D);
+    // gl.generateMipmap(gl.TEXTURE_2D);
 
-    const frameBuffer = gl.createFramebuffer();
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    frameBuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, waterTexture, level);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, waterTexture, 0);
 
     document.addEventListener('mousedown', (e) => {
         console.log(e);
@@ -183,7 +171,7 @@ const render = () => {
         gl.bindTexture(gl.TEXTURE_2D, waterTexture);
         gl.activeTexture(gl.TEXTURE0);
 
-        gl.clearColor(1.0, 0.0, 0.0, 1.0);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         gl.enableVertexAttribArray(vertexPositionLocation);
