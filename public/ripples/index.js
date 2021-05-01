@@ -64,14 +64,14 @@ uniform sampler2D waterTexture;
 uniform vec2 mousePosition;
 
 void main(void) {
-    float s = 1.0 / 512.0;
+    float s = 0.0005;
     vec4 outgoing = texture2D(waterTexture, st);
     vec4 incoming = vec4(0, 0, 0, 0);
     incoming += texture2D(waterTexture, st + vec2(+s, +0));
     incoming += texture2D(waterTexture, st + vec2(-s, +0));
     incoming += texture2D(waterTexture, st + vec2(+0, +s));
     incoming += texture2D(waterTexture, st + vec2(+0, -s));
-    vec4 c = outgoing;
+    vec4 c = incoming * 0.5 - outgoing;
     c = c * 0.99;
 
     if(distance(st, mousePosition) <= 0.1){
@@ -79,7 +79,7 @@ void main(void) {
     }
 
     gl_FragColor = vec4(
-        clamp(c.r, -10.0, 10.0),
+        clamp(c.r, -5.0, +5.0),
         clamp(c.g, 0.0, 1.0),
         clamp(c.b, 0.0, 1.0),
         1.0
@@ -109,8 +109,8 @@ uniform sampler2D backgroundTexture;
 
 void main(void) {
     vec4 water = texture2D(waterTexture, st);
-    vec4 background = texture2D(backgroundTexture, st);
-    gl_FragColor = mix(background, water, 0.5);
+    vec4 background = texture2D(backgroundTexture, st + vec2(water.r, water.r) * 0.1);
+    gl_FragColor = background;
     // gl_FragColor = water;
 }
 `;
@@ -130,7 +130,11 @@ const loadTexture = (imageUrl) => {
             const texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-            gl.generateMipmap(gl.TEXTURE_2D);
+            // gl.generateMipmap(gl.TEXTURE_2D);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             resolve(texture);
         };
 
@@ -150,11 +154,13 @@ const makeDynamicTexture = () => {
     }
 
     gl.getExtension('OES_texture_float'); // enables floating point textures
+    gl.getExtension('OES_texture_float_linear'); // enables floating linear mip map
+    
     const dynamicTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, dynamicTexture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.FLOAT, data);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     return dynamicTexture;
