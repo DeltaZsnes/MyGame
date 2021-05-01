@@ -75,7 +75,7 @@ varying vec2 st;
 
 void main(void) {
     gl_Position = vertexPosition;
-    st = vertexPosition.st;
+    st = vertexPosition.st * 0.5 + vec2(0.5, 0.5);
 }
 `;
 
@@ -185,15 +185,14 @@ const render = () => {
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, backgroundTexture);
-        
+        gl.uniform1i(backgroundTextureLocation, 0);
+
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, waterTexture);
-        
+        gl.uniform1i(waterTextureLocation, 1);
+
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
-
-        gl.uniform1i(backgroundTextureLocation, 0);
-        gl.uniform1i(waterTextureLocation, 1);
 
         gl.enableVertexAttribArray(vertexPositionLocation);
         gl.vertexAttribPointer(vertexPositionLocation, 3, gl.FLOAT, false, 0, 0);
