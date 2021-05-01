@@ -19,6 +19,8 @@ let frameBuffer = null;
 let framebufferX = null;
 let fbTextureX = null;
 
+let mouse = {};
+
 const makeProgram = (vsSource, fsSource) => {
     const vertexShader = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(vertexShader, vsSource);
@@ -59,6 +61,7 @@ void main(void) {
 precision mediump float;
 varying vec2 st;
 uniform sampler2D waterTexture;
+uniform vec2 mousePosition;
 
 void main(void) {
     float s = 1.0 / 512.0;
@@ -71,12 +74,14 @@ void main(void) {
     // water += texture2D(waterTexture, st + vec2(+s, +s));
     // water += texture2D(waterTexture, st + vec2(-s, +s));
     // water += texture2D(waterTexture, st + vec2(+s, -s));
-    // water = water / 4.0;
+    water = water / 4.0;
     gl_FragColor = water;
 
-    if(distance(st, vec2(0.5,0.5)) <= 0.1){
+    if(distance(st, mousePosition) <= 0.1){
         gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
     }
+
+    gl_FragColor.a = 1.0;
 }
 `;
 
@@ -154,6 +159,7 @@ const init = async () => {
     touchProgram.program = makeProgramTouch();
     touchProgram.vertexPositionLocation = gl.getAttribLocation(touchProgram.program, "vertexPosition");
     touchProgram.waterTextureLocation = gl.getUniformLocation(touchProgram.program, "waterTexture");
+    touchProgram.mousePositionLocation = gl.getUniformLocation(touchProgram.program, "mousePosition");
 
     waterProgram = {};
     waterProgram.program = makeProgramWater();
@@ -176,11 +182,16 @@ const init = async () => {
     frameBuffer = gl.createFramebuffer();
 
     document.addEventListener('mousedown', (e) => {
-        console.log(e);
+        mouse.touch = true;
+        mouse.x = e.x;
+        mouse.y = e.y;
     });
     document.addEventListener('mouseup', (e) => {
+        mouse.touch = false;
     });
     document.addEventListener('mousemove', (e) => {
+        mouse.x = e.x;
+        mouse.y = e.y;
     });
 };
 
@@ -197,6 +208,8 @@ const render = () => {
         gl.activeTexture(gl.TEXTURE0);
         gl.uniform1i(touchProgram.waterTextureLocation, 0);
         gl.bindTexture(gl.TEXTURE_2D, waterTextureFront);
+
+        gl.uniform2f(touchProgram.mousePositionLocation, +mouse.x / 512.0, 1.0 - mouse.y / 512.0);
 
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
