@@ -67,6 +67,11 @@ void main(void) {
     water += texture2D(waterTexture, st + vec2(-s, +0));
     water += texture2D(waterTexture, st + vec2(+0, +s));
     water += texture2D(waterTexture, st + vec2(+0, -s));
+    // water += texture2D(waterTexture, st + vec2(-s, -s));
+    // water += texture2D(waterTexture, st + vec2(+s, +s));
+    // water += texture2D(waterTexture, st + vec2(-s, +s));
+    // water += texture2D(waterTexture, st + vec2(+s, -s));
+    // water = water / 4.0;
     gl_FragColor = water;
 
     if(distance(st, vec2(0.5,0.5)) <= 0.1){
@@ -99,7 +104,7 @@ void main(void) {
     vec4 water = texture2D(waterTexture, st);
     vec4 background = texture2D(backgroundTexture, st);
     gl_FragColor = mix(background, water, 0.5);
-    gl_FragColor = water;
+    // gl_FragColor = water;
 }
 `;
 
@@ -127,9 +132,14 @@ const loadTexture = (imageUrl) => {
 }
 
 const makeDynamicTexture = () => {
+    const size = 512;
+    const data = new Uint8Array(new Array(size * size * 4).fill(0));
+    for(let i = 3; i<data.length; i+=4){
+        data[i] = 255;
+    }
     const dynamicTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, dynamicTexture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 512, 512, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -188,7 +198,7 @@ const render = () => {
         gl.uniform1i(touchProgram.waterTextureLocation, 0);
         gl.bindTexture(gl.TEXTURE_2D, waterTextureFront);
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         gl.enableVertexAttribArray(touchProgram.vertexPositionLocation);
@@ -212,7 +222,7 @@ const render = () => {
         gl.uniform1i(waterProgram.backgroundTextureLocation, 1);
         gl.bindTexture(gl.TEXTURE_2D, backgroundTexture);
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         gl.enableVertexAttribArray(waterProgram.vertexPositionLocation);
